@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../models/client_model.dart';
 import '../models/note_model.dart';
 import '../services/notes_service.dart';
 import 'pdf_preview_screen.dart';
 
 class CreateNoteScreen extends StatefulWidget {
   final Note? noteToEdit;
-  const CreateNoteScreen({super.key, this.noteToEdit});
+  final Client? clientToUse;
+  const CreateNoteScreen({super.key, this.noteToEdit, this.clientToUse});
 
   @override
   State<CreateNoteScreen> createState() => _CreateNoteScreenState();
@@ -34,6 +36,10 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
       _loadNoteData(widget.noteToEdit!);
     } else {
       _generateFolio();
+      if (widget.clientToUse != null) {
+        _clientNameController.text = widget.clientToUse!.name;
+        _clientContactController.text = widget.clientToUse!.email.isNotEmpty ? widget.clientToUse!.email : widget.clientToUse!.phone;
+      }
     }
   }
 

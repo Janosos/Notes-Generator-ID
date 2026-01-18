@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../services/notes_service.dart';
 import '../models/note_model.dart';
 import 'create_note_screen.dart';
+import 'pdf_preview_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -59,7 +60,7 @@ class DashboardScreen extends StatelessWidget {
                     [
                       // Greeting Section
                       Text(
-                        'Hola, Alex 👋',
+                        'Hola 👋',
                         style: theme.textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -480,6 +481,16 @@ class _NoteCard extends StatelessWidget {
                           onSelected: (value) {
                             if (value == 'delete') {
                               NotesService().deleteNote(note);
+                            } else if (value == 'view') {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => PdfPreviewScreen(note: note)),
+                              );
+                            } else if (value == 'edit') {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => CreateNoteScreen(noteToEdit: note)),
+                              );
                             }
                           },
                           itemBuilder: (context) => [

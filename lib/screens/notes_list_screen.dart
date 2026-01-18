@@ -6,7 +6,8 @@ import 'create_note_screen.dart';
 import 'pdf_preview_screen.dart';
 
 class NotesListScreen extends StatefulWidget {
-  const NotesListScreen({super.key});
+  final String? filterClientName;
+  const NotesListScreen({super.key, this.filterClientName});
 
   @override
   State<NotesListScreen> createState() => _NotesListScreenState();
@@ -97,7 +98,12 @@ class _NotesListScreenState extends State<NotesListScreen> {
       ),
       body: ValueListenableBuilder<List<Note>>(
         valueListenable: NotesService().notesNotifier,
-        builder: (context, notes, _) {
+        builder: (context, allNotes, _) {
+          // Apply filter if exists
+          final notes = widget.filterClientName != null 
+              ? allNotes.where((n) => n.clientName.toLowerCase() == widget.filterClientName!.toLowerCase()).toList()
+              : allNotes;
+
           if (notes.isEmpty) {
             return Center(
               child: Column(
@@ -106,7 +112,9 @@ class _NotesListScreenState extends State<NotesListScreen> {
                    Icon(Icons.note_alt_outlined, size: 64, color: Colors.grey.withOpacity(0.5)),
                    const SizedBox(height: 16),
                    Text(
-                    'No tienes notas aún',
+                    widget.filterClientName != null 
+                      ? 'No hay notas para este cliente'
+                      : 'No tienes notas aún',
                     style: TextStyle(color: Colors.grey.withOpacity(0.8), fontSize: 16),
                   ),
                 ],
