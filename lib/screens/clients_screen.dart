@@ -3,6 +3,7 @@ import '../models/client_model.dart';
 import '../services/clients_service.dart';
 import 'create_note_screen.dart';
 import 'notes_list_screen.dart';
+import '../utils/localization.dart';
 
 class ClientsScreen extends StatefulWidget {
   const ClientsScreen({super.key});
@@ -17,28 +18,29 @@ class _ClientsScreenState extends State<ClientsScreen> {
   void _showAddClientDialog() {
     final nameCtrl = TextEditingController();
     final contactCtrl = TextEditingController(); // Email or Phone
+    final loc = AppLocalizations.of(context);
     
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Nuevo Cliente'),
+        title: Text(loc.translate('add_client')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: nameCtrl,
-              decoration: const InputDecoration(labelText: 'Nombre / Empresa', hintText: 'Ej. ImperioDev'),
+              decoration: InputDecoration(labelText: loc.translate('client_name_hint'), hintText: 'Ej. ImperioDev'),
               textCapitalization: TextCapitalization.words,
             ),
             const SizedBox(height: 12),
             TextField(
               controller: contactCtrl,
-              decoration: const InputDecoration(labelText: 'Contacto', hintText: 'Email o Teléfono'),
+              decoration: InputDecoration(labelText: loc.translate('contact_hint'), hintText: 'Email / Tel'),
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(loc.translate('cancel'))),
           ElevatedButton(
             onPressed: () {
               if (nameCtrl.text.isNotEmpty) {
@@ -52,7 +54,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                 Navigator.pop(ctx);
               }
             },
-            child: const Text('Guardar'),
+            child: Text(loc.translate('save')),
           ),
         ],
       ),
@@ -60,23 +62,24 @@ class _ClientsScreenState extends State<ClientsScreen> {
   }
 
   void _confirmDelete(Client client) {
+     final loc = AppLocalizations.of(context);
      showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar Cliente'),
-        content: Text('¿Eliminar a ${client.name}?'),
+        title: Text(loc.translate('delete_client_title')),
+        content: Text('${loc.translate('delete_client_msg')} (${client.name})'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(loc.translate('cancel'))),
           TextButton(
             onPressed: () {
               _clientsService.removeClient(client);
               Navigator.pop(ctx);
                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Cliente eliminado')),
+                  SnackBar(content: Text(loc.translate('client_deleted'))),
                 );
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Eliminar'),
+            child: Text(loc.translate('delete_note')),
           ),
         ],
       ),
@@ -86,18 +89,19 @@ class _ClientsScreenState extends State<ClientsScreen> {
   @override
   Widget build(BuildContext context) {
      final theme = Theme.of(context);
+     final loc = AppLocalizations.of(context);
     
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text('Clientes', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+        title: Text(loc.translate('client_title'), style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
         backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddClientDialog,
         icon: const Icon(Icons.person_add),
-        label: const Text('Nuevo Cliente'),
+        label: Text(loc.translate('add_client')),
       ),
       body: ValueListenableBuilder<List<Client>>(
         valueListenable: _clientsService.clientsNotifier,
@@ -110,7 +114,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                   Icon(Icons.people_outline, size: 64, color: Colors.grey.withOpacity(0.5)),
                   const SizedBox(height: 16),
                   Text(
-                    'No hay clientes registrados',
+                    loc.translate('clients_empty'),
                     style: TextStyle(color: Colors.grey.withOpacity(0.8), fontSize: 16),
                   ),
                 ],
@@ -208,20 +212,23 @@ class _ClientCard extends StatelessWidget {
               if (val == 'history') onViewHistory();
               if (val == 'delete') onDelete();
             },
-            itemBuilder: (ctx) => [
-              const PopupMenuItem(
-                value: 'note', 
-                child: Row(children: [Icon(Icons.add_circle_outline, color: Colors.blue), SizedBox(width: 8), Text('Crear Nota')])
-              ),
-              const PopupMenuItem(
-                value: 'history', 
-                child: Row(children: [Icon(Icons.history, color: Colors.grey), SizedBox(width: 8), Text('Ver Notas')])
-              ),
-               const PopupMenuItem(
-                value: 'delete', 
-                child: Row(children: [Icon(Icons.delete_outline, color: Colors.red), SizedBox(width: 8), Text('Eliminar')])
-              ),
-            ],
+            itemBuilder: (ctx) {
+              final loc = AppLocalizations.of(context);
+              return [
+                PopupMenuItem(
+                  value: 'note', 
+                  child: Row(children: [const Icon(Icons.add_circle_outline, color: Colors.blue), const SizedBox(width: 8), Text(loc.translate('create_note_for'))])
+                ),
+                PopupMenuItem(
+                  value: 'history', 
+                  child: Row(children: [const Icon(Icons.history, color: Colors.grey), const SizedBox(width: 8), Text(loc.translate('view_history'))])
+                ),
+                 PopupMenuItem(
+                  value: 'delete', 
+                  child: Row(children: [const Icon(Icons.delete_outline, color: Colors.red), const SizedBox(width: 8), Text(loc.translate('delete_note'))])
+                ),
+              ];
+            },
           ),
         ],
       ),

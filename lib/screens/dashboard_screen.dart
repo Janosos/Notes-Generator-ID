@@ -4,6 +4,7 @@ import '../services/notes_service.dart';
 import '../models/note_model.dart';
 import 'create_note_screen.dart';
 import 'pdf_preview_screen.dart';
+import '../utils/localization.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -14,9 +15,11 @@ class DashboardScreen extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final notesService = NotesService();
 
+    final loc = AppLocalizations.of(context);
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      body: ValueListenableBuilder(
+      body: ValueListenableBuilder<List<Note>>(
         valueListenable: notesService.notesNotifier,
         builder: (context, notes, _) {
           return CustomScrollView(
@@ -60,14 +63,14 @@ class DashboardScreen extends StatelessWidget {
                     [
                       // Greeting Section
                       Text(
-                        'Hola 👋',
+                        loc.translate('greeting'),
                         style: theme.textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        "Aquí está tu resumen de ventas.",
+                        loc.translate('dashboard_subtitle'),
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: Colors.grey,
                         ),
@@ -92,7 +95,7 @@ class DashboardScreen extends StatelessWidget {
                           child: Padding(
                             padding: const EdgeInsets.only(top: 20),
                             child: Text(
-                              'No hay notas creadas aún.',
+                              loc.translate('no_notes'),
                               style: TextStyle(color: Colors.grey[400]),
                             ),
                           ),
@@ -129,7 +132,7 @@ class _StatsGrid extends StatelessWidget {
       children: [
         Expanded(
           child: _StatCard(
-            title: 'Ventas Totales',
+            title: AppLocalizations.of(context).translate('stat_total_sales'),
             value: currencyFormat.format(totalSales),
             icon: Icons.analytics_outlined,
             iconColor: Colors.blue,
@@ -139,8 +142,8 @@ class _StatsGrid extends StatelessWidget {
         const SizedBox(width: 16),
         Expanded(
           child: _StatCard(
-            title: 'Notas Creadas',
-            value: '$notesCount', // This might count drafts if notesCount counts all.
+            title: AppLocalizations.of(context).translate('stat_notes_created'),
+            value: '$notesCount', 
             // notesCount uses notes.length. If drafts are in notes, they are counted.
             // User asked: "Los borradores no deben sumarse al contador de ventas totales"
             // They didn't explicitly say not to count them in "Notas Creadas", but typically separate.
@@ -300,8 +303,8 @@ class _CreateNoteButton extends StatelessWidget {
                       child: const Icon(Icons.add, color: Colors.white, size: 32),
                     ),
                     const SizedBox(height: 12),
-                    const Text(
-                      'Nueva Cotización',
+                      Text(
+                        AppLocalizations.of(context).translate('create_note_button'),
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 18,
@@ -310,8 +313,8 @@ class _CreateNoteButton extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
-                     Text(
-                      'Crear una nueva nota de venta',
+                       Text(
+                        AppLocalizations.of(context).translate('create_note_subtitle'),
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.8),
                         fontSize: 12,
@@ -338,7 +341,7 @@ class _RecentNotesHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Text(
-          'Notas Recientes',
+          AppLocalizations.of(context).translate('recent_notes'),
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
           ),
@@ -368,19 +371,24 @@ class _NoteCard extends StatelessWidget {
   const _NoteCard({required this.note});
 
   @override
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final loc = AppLocalizations.of(context);
 
     // Status Logic
+    String statusText = note.status;
     Color statusColor = Colors.teal;
     Color statusBg = Colors.teal.withOpacity(0.1);
     
     // Match the dark badge style from image specifically for 'BORRADOR'
     if (note.status == 'BORRADOR') {
+      statusText = loc.translate('status_draft');
       statusColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
-      statusBg = isDark ? const Color(0xFF1e293b) : Colors.grey.shade200; // Dark slate for dark mode
+      statusBg = isDark ? const Color(0xFF1e293b) : Colors.grey.shade200; 
     } else if (note.status == 'COMPLETADA') {
+      statusText = loc.translate('status_completed');
       statusColor = Colors.blue; 
       statusBg = Colors.blue.withOpacity(0.1);
     }
@@ -428,7 +436,7 @@ class _NoteCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    // Status Badge (Visual based on image)
+                    // Status Badge
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
@@ -436,7 +444,7 @@ class _NoteCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        note.status,
+                        statusText,
                         style: TextStyle(
                           color: statusColor,
                           fontWeight: FontWeight.bold,
@@ -474,7 +482,7 @@ class _NoteCard extends StatelessWidget {
                           ),
                         ),
                         
-                        // Menu for Delete
+                        // Menu
                         PopupMenuButton<String>(
                           icon: Icon(Icons.more_vert, size: 18, color: Colors.grey[400]),
                           padding: EdgeInsets.zero,
@@ -495,41 +503,41 @@ class _NoteCard extends StatelessWidget {
                           },
                           itemBuilder: (context) => [
                             if (note.status == 'COMPLETADA')
-                              const PopupMenuItem(
+                               PopupMenuItem(
                                 value: 'view',
                                 child: Row(
                                   children: [
-                                    Icon(Icons.picture_as_pdf, color: Colors.blue, size: 20),
-                                    SizedBox(width: 8),
-                                    Text('Ver PDF'),
+                                    const Icon(Icons.picture_as_pdf, color: Colors.blue, size: 20),
+                                    const SizedBox(width: 8),
+                                    Text(loc.translate('menu_view_pdf')),
                                   ],
                                 ),
                               ),
                             if (note.status == 'BORRADOR')
-                              const PopupMenuItem(
+                               PopupMenuItem(
                                 value: 'edit',
                                 child: Row(
                                   children: [
-                                    Icon(Icons.edit, color: Colors.orange, size: 20),
-                                    SizedBox(width: 8),
-                                    Text('Editar'),
+                                    const Icon(Icons.edit, color: Colors.orange, size: 20),
+                                    const SizedBox(width: 8),
+                                    Text(loc.translate('menu_edit')),
                                   ],
                                 ),
                               ),
-                            const PopupMenuItem(
+                             PopupMenuItem(
                               value: 'delete',
                               child: Row(
                                 children: [
-                                  Icon(Icons.delete, color: Colors.red, size: 20),
-                                  SizedBox(width: 8),
-                                  Text('Eliminar'),
+                                  const Icon(Icons.delete, color: Colors.red, size: 20),
+                                  const SizedBox(width: 8),
+                                  Text(loc.translate('menu_delete')),
                                 ],
                               ),
                             ),
                           ],
                         ),
                       ],
-                     ),
+                    ),
                   ],
                 ),
               ],

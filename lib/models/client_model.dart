@@ -12,4 +12,24 @@ class Client {
     this.phone = '',
     this.address = '',
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'email': email,
+      'phone': phone,
+      'address': address,
+    };
+  }
+
+  factory Client.fromJson(Map<String, dynamic> json) {
+    return Client(
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      email: json['email'] ?? '',
+      phone: json['phone'] ?? '',
+      address: json['address'] ?? '',
+    );
+  }
 }

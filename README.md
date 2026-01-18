@@ -1,40 +1,50 @@
-# Notes Generator ID
+# Notes Creator
 
-**Notes Generator ID** es una aplicación desarrollada en Flutter diseñada para optimizar la creación y gestión de notas de venta y cotizaciones para **ImperioDev**, una agencia de soluciones digitales.
+**Notes Creator** es una aplicacion desarrollada en Flutter disenada para optimizar la creacion y gestion de notas de venta y cotizaciones para **ImperioDev**, una agencia de soluciones digitales.
 
-La aplicación permite generar documentos PDF profesionales y estandarizados, listos para ser compartidos con clientes a través de WhatsApp o guardados localmente.
+La aplicacion permite generar documentos PDF profesionales y estandarizados, listos para ser compartidos con clientes a traves de WhatsApp o guardados localmente.
 
-## 🚀 Características Principales
+## Caracteristicas Principales
 
-*   **Dashboard Intuitivo**: Vista rápida de métricas clave, accesos directos a creación de notas y plantillas rápidas.
-*   **Diseño Moderno & Responsivo**: Interfaz basada en principios modernos de UI (Glassmorphism, colores vibrantes) adaptada para escritorio (Windows) y preparada para escalabilidad.
+*   **Dashboard Intuitivo**: Vista rapida de metricas clave, accesos directos a creacion de notas y plantillas rapidas.
+*   **Diseno Moderno & Responsivo**: Interfaz basada en principios modernos de UI (Glassmorphism, colores vibrantes) adaptada para escritorio (Windows) y dispositivos moviles (Android).
+*   **Persistencia de Datos**:
+    *   Guardado automatico de notas y clientes.
+    *   La informacion persiste despues de cerrar la aplicacion.
+*   **Localizacion Completa**:
+    *   Soporte para Ingles (EN) y Espanol (ES).
+    *   Deteccion automatica y cambio de idioma en tiempo real.
+    *   Generacion de PDF adaptada al idioma seleccionado.
 *   **Generador de Cotizaciones**:
-    *   Formulario detallado con selección de clientes, fechas y folio dinámico (`#IMP-YYYY-NNN`).
-    *   Gestión de ítems/servicios con cálculo automático de totales.
-    *   Cálculo opcional de IVA (16%).
+    *   Formulario detallado con seleccion de clientes, fechas y folio dinamico.
+    *   Gestion de items/servicios con calculo automatico de totales.
+    *   Calculo opcional de IVA (16%).
     *   Campo para notas adicionales.
 *   **Motor PDF Potente**:
-    *   Generación de PDFs de alta fidelidad con branding de **ImperioDev**.
-    *   Diseño "pixel-perfect" con tablas detalladas, desgloses financieros y pie de página estilizado.
-*   **Integración con WhatsApp**: Funcionalidad directa para enviar la cotización generada al cliente vía WhatsApp Web o App.
-*   **Soporte Off-line**: Funcionalidad completa sin necesidad de conexión constante a internet.
+    *   Generacion de PDFs de alta fidelidad con branding de **ImperioDev**.
+    *   Diseno profesional con tablas detalladas y desgloses financieros.
+*   **Integracion con WhatsApp**: Funcionalidad directa para enviar la cotizacion generada al cliente via WhatsApp.
+*   **Soporte Multiplataforma**:
+    *   Windows (Escritorio).
+    *   Android (APK optimizado).
 
-## 🛠️ Tecnologías Utilizadas
+## Tecnologias Utilizadas
 
 *   **Flutter**: Framework principal para el desarrollo multiplataforma.
-*   **Dart**: Lenguaje de programación.
+*   **Dart**: Lenguaje de programacion.
 *   **Paquetes Clave**:
-    *   `pdf`: Generación de documentos.
-    *   `printing`: Previsualización e impresión multiplataforma.
-    *   `google_fonts`: Tipografía personalizada (Plus Jakarta Sans).
+    *   `pdf`: Generacion de documentos.
+    *   `printing`: Previsualizacion e impresion multiplataforma.
+    *   `shared_preferences`: Persistencia de datos local.
+    *   `flutter_localizations`: Soporte de internacionalizacion.
     *   `intl`: Formateo de fechas y monedas.
-    *   `url_launcher`: Integración con aplicaciones externas (WhatsApp).
+    *   `path_provider` & `file_selector`: Gestion de archivos en diferentes sistemas operativos.
 
-## 📦 Instalación y Uso (Desarrollo)
+## Instalacion y Uso (Desarrollo)
 
 1.  **Requisitos Previos**:
     *   Flutter SDK instalado y configurado.
-    *   Entorno de desarrollo para Windows (Visual Studio con cargas de trabajo de escritorio C++).
+    *   Entorno de desarrollo para Windows (Visual Studio) o Android (Android Studio).
 
 2.  **Clonar el Repositorio**:
     ```bash
@@ -47,19 +57,18 @@ La aplicación permite generar documentos PDF profesionales y estandarizados, li
     flutter pub get
     ```
 
-4.  **Ejecutar la Aplicación**:
-    ```bash
-    flutter run -d windows
-    ```
+4.  **Ejecutar la Aplicacion**:
+    *   Windows: `flutter run -d windows`
+    *   Android: `flutter run -d android`
 
-## 📸 Estructura del Proyecto
+## Estructura del Proyecto
 
-*   `lib/main.dart`: Punto de entrada y configuración de temas.
-*   `lib/screens/`: Pantallas principales (Dashboard, Creación de Nota, Previsualización PDF).
-*   `lib/services/`: Lógica de negocio (Servicio de PDF).
-*   `lib/models/`: Modelos de datos (Note, NoteItem).
-*   `lib/theme/`: Configuración de estilos y colores (AppTheme).
+*   `lib/main.dart`: Punto de entrada y configuracion de temas.
+*   `lib/screens/`: Pantallas principales (Dashboard, Creacion de Nota, Previsualizacion PDF, Ajustes).
+*   `lib/services/`: Logica de negocio (Servicio de PDF, Persistencia de Notas/Clientes).
+*   `lib/models/`: Modelos de datos (Note, NoteItem, Client).
+*   `lib/l10n/`: Archivos de localizacion y traduccion.
 
-## 📄 Licencia
+## Licencia
 
 Este proyecto es propiedad de **ImperioDev**. Todos los derechos reservados.

@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../models/client_model.dart';
 import '../models/note_model.dart';
 import '../services/notes_service.dart';
+import '../utils/localization.dart';
 import 'pdf_preview_screen.dart';
 
 class CreateNoteScreen extends StatefulWidget {
@@ -133,7 +134,7 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
       }
       
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Guardado en borradores'), duration: Duration(seconds: 1)),
+        SnackBar(content: Text(AppLocalizations.of(context).translate('draft_saved')), duration: const Duration(seconds: 1)),
       );
       
       // Optional: Pop after save or stay? Usually stay or pop. Let's pop to confirm saved.
@@ -144,7 +145,7 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
     if (_formKey.currentState!.validate()) {
        if (_items.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Agregue al menos un servicio')),
+          SnackBar(content: Text(AppLocalizations.of(context).translate('add_service_error'))),
         );
         return;
       }
@@ -211,7 +212,7 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
           TextButton.icon(
             onPressed: _saveDraft,
             icon: const Icon(Icons.save_as_outlined, size: 18),
-            label: const Text("Borrador"),
+            label: Text(AppLocalizations.of(context).translate('save_draft')),
             style: TextButton.styleFrom(
               foregroundColor: colorTextSec,
             ),
@@ -229,34 +230,38 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Page Title
-                  Text(_isEditing ? 'Editar Nota' : 'Nueva Cotización', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+                  Text(_isEditing ? AppLocalizations.of(context).translate('edit_note') : AppLocalizations.of(context).translate('create_note_button'), style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
                   Text(
-                    'Complete los detalles para generar una nota de venta.',
+                    AppLocalizations.of(context).translate('create_note_subtitle'),
                     style: theme.textTheme.bodyMedium?.copyWith(color: colorTextSec),
                   ),
                   const SizedBox(height: 24),
 
                   // Section 1: Client
                   _SectionCard(
-                    title: 'Cliente',
+                    title: AppLocalizations.of(context).translate('section_client'),
                     icon: Icons.person,
                     children: [
-                      _Label('Nombre del Cliente / Empresa'),
+                      _Label(AppLocalizations.of(context).translate('client_name_hint')),
                       TextFormField(
                         controller: _clientNameController,
                         style: theme.textTheme.bodyMedium,
-                        decoration: _inputDecoration(context, 'Ej. ImperioDev'),
+                        decoration: _inputDecoration(context, AppLocalizations.of(context).translate('hint_client_name')),
                         validator: (v) => v!.isEmpty ? 'Requerido' : null,
                       ),
                       const SizedBox(height: 16),
                       Row(
                         children: [
+// ... (skip date/folio lines if safe, or match them. Let's try to match just the Client Name Field first)
+// Actually I can match by context.
+// Let's do separate calls for safety.
+
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _Label('Fecha'),
+                                _Label(AppLocalizations.of(context).translate('label_date')),
                                 InkWell(
                                   onTap: () => _selectDate(context),
                                   child: Container(
@@ -280,7 +285,7 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _Label('Folio'),
+                                _Label(AppLocalizations.of(context).translate('label_folio')),
                                 Container(
                                   width: double.infinity,
                                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -299,11 +304,11 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      _Label('Contacto (Email/WhatsApp)'),
+                      _Label(AppLocalizations.of(context).translate('label_contact')),
                        TextFormField(
                         controller: _clientContactController,
                         style: theme.textTheme.bodyMedium,
-                        decoration: _inputDecoration(context, 'contacto@cliente.com', icon: Icons.alternate_email),
+                        decoration: _inputDecoration(context, AppLocalizations.of(context).translate('hint_contact'), icon: Icons.alternate_email),
                       ),
                     ],
                   ),
@@ -323,30 +328,12 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
                     ),
                     child: Column(
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            _SectionTitle('Servicios', Icons.layers, theme),
-                            TextButton.icon(
-                              onPressed: _addItem,
-                              style: TextButton.styleFrom(
-                                backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
-                                foregroundColor: theme.colorScheme.primary,
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                minimumSize: Size.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              icon: const Icon(Icons.add, size: 16),
-                              label: const Text('Añadir Item', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                            ),
-                          ],
-                        ),
+                        _SectionTitle(AppLocalizations.of(context).translate('section_services'), Icons.layers, theme),
                         const SizedBox(height: 16),
                         if (_items.isEmpty)
                           Padding(
                             padding: const EdgeInsets.all(16.0),
-                            child: Text("No hay servicios añadidos", style: TextStyle(color: Colors.grey[400])),
+                            child: Text(AppLocalizations.of(context).translate('no_services_added'), style: TextStyle(color: Colors.grey[400])),
                           )
                         else
                           ListView.separated(
@@ -380,7 +367,7 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
                               children: [
                                 Icon(Icons.add_circle_outline, color: colorTextSec),
                                 const SizedBox(width: 8),
-                                Text('Agregar otro servicio', style: TextStyle(color: colorTextSec, fontWeight: FontWeight.w600)),
+                                Text(AppLocalizations.of(context).translate('add_another_service'), style: TextStyle(color: colorTextSec, fontWeight: FontWeight.w600)),
                               ],
                             ),
                           ),
@@ -393,10 +380,10 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
 
                   // Section 3: Summary
                   _SectionCard(
-                    title: 'Resumen',
+                    title: AppLocalizations.of(context).translate('section_summary'),
                     icon: Icons.receipt_long,
                     children: [
-                      _SummaryRow('Subtotal', _subtotal),
+                      _SummaryRow(AppLocalizations.of(context).translate('subtotal'), _subtotal),
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8.0),
                         child: Row(
@@ -404,7 +391,7 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
                           children: [
                             Row(
                               children: [
-                                Text('IVA (16%)', style: TextStyle(color: colorTextSec, fontSize: 14)),
+                                Text('${AppLocalizations.of(context).translate('label_vat')} (16%)', style: TextStyle(color: colorTextSec, fontSize: 14)),
                                 const SizedBox(width: 8),
                                 SizedBox(
                                   height: 24,
@@ -428,7 +415,7 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                           Text('Total', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                           Text(AppLocalizations.of(context).translate('total'), style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
                            Column(
                              crossAxisAlignment: CrossAxisAlignment.end,
                              children: [
@@ -444,11 +431,11 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
                    const SizedBox(height: 24),
 
                    // Additional Notes
-                   _Label('Notas Adicionales'),
+                   _Label(AppLocalizations.of(context).translate('additional_notes')),
                    TextFormField(
                      controller: _additionalNotesController,
                      maxLines: 3,
-                     decoration: _inputDecoration(context, 'Detalles de pago, tiempos de entrega...'),
+                     decoration: _inputDecoration(context, AppLocalizations.of(context).translate('hint_additional')),
                    ),
                 ],
               ),
@@ -482,12 +469,12 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
                         shadowColor: theme.colorScheme.primary.withOpacity(0.4),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.send, size: 18),
-                          SizedBox(width: 8),
-                          Text('Generar y Enviar'),
+                          const Icon(Icons.send, size: 18),
+                          const SizedBox(width: 8),
+                          Text(AppLocalizations.of(context).translate('generate_send')),
                         ],
                       ),
                     ),
@@ -679,9 +666,9 @@ class _ItemCardState extends State<_ItemCard> {
               TextField(
                 controller: _descCtrl,
                 onChanged: (_) => _update(),
-                decoration: const InputDecoration(
-                  hintText: 'Descripción del servicio',
-                  border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
+                decoration: InputDecoration(
+                  hintText: AppLocalizations.of(context).translate('hint_desc'),
+                  border: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
                   enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black12)),
                   contentPadding: EdgeInsets.zero,
                   isDense: true,
@@ -693,7 +680,7 @@ class _ItemCardState extends State<_ItemCard> {
                 top: -8,
                 child: InkWell(
                   onTap: widget.onDelete,
-                  child: const Icon(Icons.close, size: 18, color: Colors.grey),
+                  child: const Icon(Icons.close, size: 20, color: Colors.redAccent),
                 ),
               )
             ],
@@ -707,7 +694,7 @@ class _ItemCardState extends State<_ItemCard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('CANT.', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+                    Text(AppLocalizations.of(context).translate('label_quantity'), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
                     const SizedBox(height: 4),
                     Container(
                       decoration: BoxDecoration(color: Theme.of(context).cardTheme.color, borderRadius: BorderRadius.circular(6)),
@@ -728,7 +715,7 @@ class _ItemCardState extends State<_ItemCard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('PRECIO UNITARIO', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+                    Text(AppLocalizations.of(context).translate('label_unit_price'), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
                     const SizedBox(height: 4),
                     Container(
                       decoration: BoxDecoration(color: Theme.of(context).cardTheme.color, borderRadius: BorderRadius.circular(6)),

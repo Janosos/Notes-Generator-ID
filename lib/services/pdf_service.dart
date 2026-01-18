@@ -7,14 +7,33 @@ import '../models/note_model.dart';
 import '../theme/app_theme.dart';
 
 class PdfService {
-  Future<Uint8List> generateNotePdf(Note note) async {
+  Future<Uint8List> generateNotePdf(Note note, String languageCode) async {
     final pdf = pw.Document();
     
+    // Localization Map for PDF
+    final isEn = languageCode == 'en';
+    final labels = {
+      'quote': isEn ? 'QUOTE' : 'COTIZACIÓN',
+      'prepared_for': isEn ? 'PREPARED FOR' : 'PREPARADO PARA',
+      'concept': isEn ? 'CONCEPT' : 'CONCEPTO',
+      'total_header': isEn ? 'TOTAL' : 'TOTAL', // Same
+      'quantity': isEn ? 'Quantity' : 'Cantidad',
+      'unit': isEn ? 'Unit' : 'Unit', // 'Unit' works for both or 'Unitario'
+      'subtotal': isEn ? 'Subtotal' : 'Subtotal',
+      'vat': isEn ? 'VAT (16%)' : 'IVA (16%)',
+      'total': isEn ? 'Total (MXN)' : 'Total (MXN)',
+      'additional_notes': isEn ? 'ADDITIONAL NOTES' : 'NOTAS ADICIONALES',
+      'footer': isEn 
+          ? 'This quote is valid for 15 days. Thank you for trusting ImperioDev.'
+          : 'Esta cotización es válida por 15 días. Gracias por confiar en ImperioDev.',
+      'slogan': isEn ? 'Transforming ideas into code\nHermosillo, Mexico' : 'Transformando ideas en código\nHermosillo, México',
+    };
+
     // Load custom font
     final font = await PdfGoogleFonts.plusJakartaSansRegular();
     final fontBold = await PdfGoogleFonts.plusJakartaSansBold();
     
-    // Exact Colors from design
+    // ... (Colors remain same)
     final primaryColor = PdfColor.fromInt(0xFF0D9488); // Teal
     final secondaryColor = PdfColor.fromInt(0xFF1E293B); // Dark Slate
     final textGrey = PdfColor.fromInt(0xFF64748B); // Slate-500
@@ -29,7 +48,7 @@ class PdfService {
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(0), // Full bleed for the footer/header strips
+        margin: const pw.EdgeInsets.all(0),
         theme: pw.ThemeData.withFont(
           base: font,
           bold: fontBold,
@@ -59,7 +78,7 @@ class PdfService {
                          pw.Column(
                            crossAxisAlignment: pw.CrossAxisAlignment.start,
                            children: [
-                             pw.Text('COTIZACIÓN', style: pw.TextStyle(color: PdfColors.grey400, fontSize: 10, fontWeight: pw.FontWeight.bold, letterSpacing: 1.5)),
+                             pw.Text(labels['quote']!, style: pw.TextStyle(color: PdfColors.grey400, fontSize: 10, fontWeight: pw.FontWeight.bold, letterSpacing: 1.5)),
                              pw.SizedBox(height: 4),
                              pw.Text(note.folio, style: pw.TextStyle(color: textDark, fontSize: 12, fontWeight: pw.FontWeight.bold)),
                              pw.SizedBox(height: 2),
@@ -78,7 +97,7 @@ class PdfService {
                                )
                              ),
                              pw.SizedBox(height: 2),
-                             pw.Text('Transformando ideas en código\nHermosillo, México', textAlign: pw.TextAlign.right, style: pw.TextStyle(color: textGrey, fontSize: 9)),
+                             pw.Text(labels['slogan']!, textAlign: pw.TextAlign.right, style: pw.TextStyle(color: textGrey, fontSize: 9)),
                            ],
                          ),
                        ],
@@ -95,7 +114,7 @@ class PdfService {
                        child: pw.Column(
                          crossAxisAlignment: pw.CrossAxisAlignment.start,
                          children: [
-                           pw.Text('PREPARADO PARA', style: pw.TextStyle(color: PdfColors.grey400, fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                           pw.Text(labels['prepared_for']!, style: pw.TextStyle(color: PdfColors.grey400, fontSize: 9, fontWeight: pw.FontWeight.bold)),
                            pw.SizedBox(height: 4),
                            pw.Text(note.clientName, style: pw.TextStyle(color: textDark, fontSize: 16, fontWeight: pw.FontWeight.bold)),
                            if (note.clientAddress.isNotEmpty) ...[
@@ -116,8 +135,8 @@ class PdfService {
                        ),
                        child: pw.Row(
                          children: [
-                           pw.Expanded(flex: 3, child: pw.Text('CONCEPTO', style: pw.TextStyle(color: textGrey, fontSize: 9, fontWeight: pw.FontWeight.bold))),
-                           pw.Expanded(flex: 1, child: pw.Text('TOTAL', textAlign: pw.TextAlign.right, style: pw.TextStyle(color: textGrey, fontSize: 9, fontWeight: pw.FontWeight.bold))),
+                           pw.Expanded(flex: 3, child: pw.Text(labels['concept']!, style: pw.TextStyle(color: textGrey, fontSize: 9, fontWeight: pw.FontWeight.bold))),
+                           pw.Expanded(flex: 1, child: pw.Text(labels['total_header']!, textAlign: pw.TextAlign.right, style: pw.TextStyle(color: textGrey, fontSize: 9, fontWeight: pw.FontWeight.bold))),
                          ]
                        ),
                      ),
@@ -138,13 +157,13 @@ class PdfService {
                                  children: [
                                    pw.Text(item.description, style: pw.TextStyle(color: textDark, fontSize: 11, fontWeight: pw.FontWeight.bold)),
                                    pw.SizedBox(height: 2),
-                                   pw.Text('Cantidad: ${item.quantity} | Unit: \$${item.price.toStringAsFixed(2)}', style: pw.TextStyle(color: textGrey, fontSize: 9)),
+                                   pw.Text('${labels['quantity']}: ${item.quantity} | ${labels['unit']}: \$${item.price.toStringAsFixed(2)} MXN', style: pw.TextStyle(color: textGrey, fontSize: 9)),
                                  ]
                                )
                              ),
                              pw.Expanded(
                                flex: 1, 
-                               child: pw.Text('\$${item.total.toStringAsFixed(2)}', textAlign: pw.TextAlign.right, style: pw.TextStyle(color: textDark, fontSize: 11, fontWeight: pw.FontWeight.bold))
+                               child: pw.Text('\$${item.total.toStringAsFixed(2)} MXN', textAlign: pw.TextAlign.right, style: pw.TextStyle(color: textDark, fontSize: 11, fontWeight: pw.FontWeight.bold))
                              ),
                            ]
                          ),
@@ -164,16 +183,16 @@ class PdfService {
                            pw.Row(
                              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                              children: [
-                               pw.Text('Subtotal', style: pw.TextStyle(color: textGrey, fontSize: 10)),
-                               pw.Text('\$${subtotal.toStringAsFixed(2)}', style: pw.TextStyle(color: textDark, fontSize: 11, fontWeight: pw.FontWeight.bold)),
+                               pw.Text(labels['subtotal']!, style: pw.TextStyle(color: textGrey, fontSize: 10)),
+                               pw.Text('\$${subtotal.toStringAsFixed(2)} MXN', style: pw.TextStyle(color: textDark, fontSize: 11, fontWeight: pw.FontWeight.bold)),
                              ]
                            ),
                            pw.SizedBox(height: 8),
                            pw.Row(
                              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                              children: [
-                               pw.Text('IVA (16%)', style: pw.TextStyle(color: textGrey, fontSize: 10)),
-                               pw.Text('\$${vat.toStringAsFixed(2)}', style: pw.TextStyle(color: textDark, fontSize: 11, fontWeight: pw.FontWeight.bold)),
+                               pw.Text(labels['vat']!, style: pw.TextStyle(color: textGrey, fontSize: 10)),
+                               pw.Text('\$${vat.toStringAsFixed(2)} MXN', style: pw.TextStyle(color: textDark, fontSize: 11, fontWeight: pw.FontWeight.bold)),
                              ]
                            ),
                            pw.SizedBox(height: 12),
@@ -186,8 +205,8 @@ class PdfService {
                              child: pw.Row(
                                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                                children: [
-                                 pw.Text('Total (MXN)', style: pw.TextStyle(color: textDark, fontSize: 12, fontWeight: pw.FontWeight.bold)),
-                                 pw.Text('\$${total.toStringAsFixed(2)}', style: pw.TextStyle(color: primaryColor, fontSize: 16, fontWeight: pw.FontWeight.bold)),
+                                 pw.Text(labels['total']!, style: pw.TextStyle(color: textDark, fontSize: 12, fontWeight: pw.FontWeight.bold)),
+                                 pw.Text('\$${total.toStringAsFixed(2)} MXN', style: pw.TextStyle(color: primaryColor, fontSize: 16, fontWeight: pw.FontWeight.bold)),
                                ]
                              ),
                            ),
@@ -207,7 +226,7 @@ class PdfService {
                           child: pw.Column(
                             crossAxisAlignment: pw.CrossAxisAlignment.start,
                             children: [
-                              pw.Text('NOTAS ADICIONALES', style: pw.TextStyle(color: PdfColors.grey400, fontSize: 8, fontWeight: pw.FontWeight.bold)),
+                              pw.Text(labels['additional_notes']!, style: pw.TextStyle(color: PdfColors.grey400, fontSize: 8, fontWeight: pw.FontWeight.bold)),
                               pw.SizedBox(height: 4),
                               pw.Text(note.additionalNotes, style: pw.TextStyle(color: textDark, fontSize: 10)),
                             ],
@@ -220,7 +239,7 @@ class PdfService {
                      // Footer Note
                      pw.Center(
                        child: pw.Text(
-                         'Esta cotización es válida por 15 días. Gracias por confiar en ImperioDev.',
+                         labels['footer']!,
                          style: pw.TextStyle(color: PdfColors.grey400, fontSize: 8, fontStyle: pw.FontStyle.italic)
                        )
                      ),

@@ -1,8 +1,13 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:printing/printing.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:file_selector/file_selector.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
 import '../models/note_model.dart';
 import '../services/pdf_service.dart';
+import '../utils/localization.dart';
 
 class PdfPreviewScreen extends StatelessWidget {
   final Note note;
@@ -18,32 +23,18 @@ class PdfPreviewScreen extends StatelessWidget {
       backgroundColor: theme.scaffoldBackgroundColor,
       // Custom Nav
       appBar: AppBar(
-        title: const Text('Vista Previa', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: Text(AppLocalizations.of(context).translate('preview_title'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         centerTitle: true,
         backgroundColor: theme.scaffoldBackgroundColor.withOpacity(0.9),
         elevation: 0,
-        leading: IconButton(
-          icon: CircleAvatar(
-             backgroundColor: isDark ? Colors.white10 : Colors.grey.shade200,
-             child: const Icon(Icons.arrow_back_ios_new, size: 18, color: Colors.grey),
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: IconButton(
-               icon: CircleAvatar(
-                 backgroundColor: isDark ? Colors.white10 : Colors.grey.shade200,
-                 child: Icon(Icons.edit, size: 18, color: theme.colorScheme.primary),
-               ),
-              onPressed: () {
-                // Edit logic
-                Navigator.pop(context);
-              },
+          leading: IconButton(
+            icon: CircleAvatar(
+               backgroundColor: isDark ? Colors.white10 : Colors.grey.shade200,
+               child: const Icon(Icons.home, size: 18, color: Colors.grey),
             ),
+            onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
           ),
-        ],
+        actions: const [],
       ),
       body: Column(
         children: [
@@ -60,21 +51,21 @@ class PdfPreviewScreen extends StatelessWidget {
               ),
               clipBehavior: Clip.antiAlias,
               child: PdfPreview(
-                build: (format) => PdfService().generateNotePdf(note),
+                build: (format) => PdfService().generateNotePdf(note, AppLocalizations.of(context).locale.languageCode),
                 canDebug: false,
                 useActions: false, // Turn off default actions to use our custom bottom bar
                 scrollViewDecoration: BoxDecoration(
                   color: theme.scaffoldBackgroundColor, // Match bg
                 ),
-                pdfPreviewPageDecoration: BoxDecoration(
+                pdfPreviewPageDecoration: const BoxDecoration(
                    color: Colors.white,
-                   boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
+                   boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
                 ), // White paper look
               ),
             ),
           ),
           
-          const Text('Vista previa del documento PDF', style: TextStyle(color: Colors.grey, fontSize: 12)),
+          Text(AppLocalizations.of(context).translate('preview_subtitle'), style: const TextStyle(color: Colors.grey, fontSize: 12)),
           const SizedBox(height: 16),
 
           // Bottom Actions
@@ -95,9 +86,15 @@ class PdfPreviewScreen extends StatelessWidget {
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: () async {
-                           // Trigger native share of the PDF
-                           final bytes = await PdfService().generateNotePdf(note);
-                           await Printing.sharePdf(bytes: bytes, filename: 'cotizacion.pdf');
+                           // Trigger native share of the PDF using Share Plus
+                           final bytes = await PdfService().generateNotePdf(note, AppLocalizations.of(context).locale.languageCode);
+                           final tempDir = await getTemporaryDirectory();
+                           // Clean filename
+                           String safeFolio = note.folio.replaceAll(RegExp(r'[^\w\s-]'), '');
+                           final file = File('${tempDir.path}/cotizacion_$safeFolio.pdf');
+                           await file.writeAsBytes(bytes);
+                           
+                           await Share.shareXFiles([XFile(file.path)], text: 'Cotización ${note.folio}');
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
@@ -107,7 +104,7 @@ class PdfPreviewScreen extends StatelessWidget {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
                         icon: const Icon(Icons.share, size: 20),
-                        label: const Text('Compartir'),
+                        label: Text(AppLocalizations.of(context).translate('share_file')),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -144,7 +141,7 @@ class PdfPreviewScreen extends StatelessWidget {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
                         icon: const Icon(Icons.send, size: 20),
-                        label: const Text('WhatsApp'), // Shortened for space
+                        label: Text(AppLocalizations.of(context).translate('whatsapp')), // Shortened for space
                       ),
                     ),
                   ],
@@ -153,11 +150,27 @@ class PdfPreviewScreen extends StatelessWidget {
                 TextButton.icon(
                   onPressed: () async {
                     // Trigger print/save
-                    final bytes = await PdfService().generateNotePdf(note);
-                    await Printing.layoutPdf(onLayout: (_) => bytes);
+                    final bytes = await PdfService().generateNotePdf(note, AppLocalizations.of(context).locale.languageCode);
+                    
+                    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+                      // Desktop: "Save As" dialog
+                      final fileName = XTypeGroup(label: 'PDF', extensions: ['pdf']);
+                      final FileSaveLocation? result = await getSaveLocation(suggestedName: 'cotizacion_${note.folio}.pdf', acceptedTypeGroups: [fileName]);
+                      
+                      if (result != null) {
+                         final file = File(result.path);
+                         await file.writeAsBytes(bytes);
+                         if (context.mounted) {
+                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${AppLocalizations.of(context).translate('saved_to')} ${result.path}')));
+                         }
+                      }
+                    } else {
+                       // Mobile: Native Print/Share sheet which allows saving
+                       await Printing.layoutPdf(onLayout: (_) => bytes);
+                    }
                   },
                   icon: const Icon(Icons.download, size: 20, color: Colors.grey),
-                  label: const Text('Guardar en dispositivo', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w600)),
+                  label: Text(AppLocalizations.of(context).translate('save_device'), style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.w600)),
                 ),
               ],
             ),

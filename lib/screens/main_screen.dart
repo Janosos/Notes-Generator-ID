@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
 import 'notes_list_screen.dart';
 import 'clients_screen.dart';
+import 'settings_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -17,7 +18,7 @@ class _MainScreenState extends State<MainScreen> {
     const DashboardScreen(),
     const NotesListScreen(),
     const ClientsScreen(),
-    const Center(child: Text("Ajustes (Próximamente)")),
+    const SettingsScreen(),
   ];
 
   void _onItemTapped(int index) {
