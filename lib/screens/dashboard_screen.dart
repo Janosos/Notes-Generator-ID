@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../services/notes_service.dart';
+import '../models/note_model.dart';
 import 'create_note_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -9,116 +11,125 @@ class DashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final notesService = NotesService();
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      // Use a Stack to position the custom bottom nav if we want total control, 
-      // or use standard Scaffold properties. The design has a transparent sticky header.
-      body: Stack(
-        children: [
-          SafeArea(
-            bottom: false,
-            child: CustomScrollView(
-              slivers: [
-                // Header (Sticky-ish)
-                SliverAppBar(
-                  floating: true,
-                  pinned: true,
-                  backgroundColor: theme.scaffoldBackgroundColor.withOpacity(0.9),
-                  elevation: 0,
-                  automaticallyImplyLeading: false,
-                  title: Row(
-                    children: [
-                      Text(
-                        'Imperio',
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : const Color(0xFF0f172a),
+      body: ValueListenableBuilder(
+        valueListenable: notesService.notesNotifier,
+        builder: (context, notes, _) {
+          return CustomScrollView(
+            slivers: [
+              // Header (Sticky-ish)
+              SliverAppBar(
+                floating: true,
+                pinned: true,
+                backgroundColor: theme.scaffoldBackgroundColor.withOpacity(0.95),
+                elevation: 0,
+                automaticallyImplyLeading: false,
+                title: Row(
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          'IMPERIO',
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.0,
+                            color: isDark ? Colors.white : const Color(0xFF0f172a),
+                          ),
                         ),
-                      ),
-                      Text(
-                        'Dev',
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: theme.colorScheme.primary,
+                        Text(
+                          'DEV',
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.0,
+                            color: theme.colorScheme.primary, // Using primary color
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  actions: [
-                    Padding(
-                      padding: const EdgeInsets.only(right: 16.0),
-                      child: IconButton(
-                        icon: const Icon(Icons.notifications_outlined),
-                        onPressed: () {},
-                      ),
+                      ],
                     ),
                   ],
                 ),
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate(
-                      [
-                        // Greeting Section
-                        Text(
-                          'Hello, Alex 👋',
-                          style: theme.textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate(
+                    [
+                      // Greeting Section
+                      Text(
+                        'Hola, Alex 👋',
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          "Here's your sales overview for today.",
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: Colors.grey,
-                          ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "Aquí está tu resumen de ventas.",
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: Colors.grey,
                         ),
-                        const SizedBox(height: 24),
+                      ),
+                      const SizedBox(height: 24),
 
-                        // Placeholders for other sections
-                        const _StatsGrid(), 
-                        const SizedBox(height: 32),
-                        const _CreateNoteButton(),
-                        const SizedBox(height: 32),
-                        const _RecentNotesHeader(),
-                        const _RecentNotesList(),
-                        const SizedBox(height: 32),
-                        const _QuickTemplatesHeader(),
-                        const SizedBox(height: 16),
-                        const _QuickTemplatesList(),
-                         const SizedBox(height: 100), // Space for bottom nav
-                      ],
-                    ),
+                      // Stats Grid - Removed const to allow rebuild
+                      _StatsGrid(notes: notes), 
+                      const SizedBox(height: 32),
+                      
+                      // Create Note Button
+                      const _CreateNoteButton(),
+                      const SizedBox(height: 32),
+                      
+                      // Recent Notes Header
+                      const _RecentNotesHeader(),
+                      const SizedBox(height: 16),
+                      
+                      // Recent Notes List - Removed const and passing notes explicitly
+                      if (notes.isEmpty)
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 20),
+                            child: Text(
+                              'No hay notas creadas aún.',
+                              style: TextStyle(color: Colors.grey[400]),
+                            ),
+                          ),
+                        )
+                      else
+                        _RecentNotesList(notes: notes),
+                      
+                      const SizedBox(height: 60), 
+                    ],
                   ),
                 ),
-              ],
-            ),
-          ),
-           // Bottom Nav Positioned
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: _CustomBottomNavBar(),
-          ),
-        ],
+              ),
+            ],
+          );
+        }
       ),
     );
   }
 }
 
 class _StatsGrid extends StatelessWidget {
-  const _StatsGrid();
+  final List<Note> notes;
+  const _StatsGrid({required this.notes});
 
   @override
   Widget build(BuildContext context) {
+    final notesService = NotesService();
+    // Re-accessing service properties is fine, but ValueListenableBuilder triggers this rebuild
+    final totalSales = notesService.totalSales;
+    final notesCount = notesService.notesCount;
+    final currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+
     return Row(
       children: [
         Expanded(
           child: _StatCard(
-            title: 'Total Sales',
-            value: '\$12,450',
+            title: 'Ventas Totales',
+            value: currencyFormat.format(totalSales),
             icon: Icons.analytics_outlined,
             iconColor: Colors.blue,
             iconBgColor: Colors.blue.withOpacity(0.1),
@@ -127,9 +138,17 @@ class _StatsGrid extends StatelessWidget {
         const SizedBox(width: 16),
         Expanded(
           child: _StatCard(
-            title: 'Pending',
-            value: '3 Quotes',
-            icon: Icons.pending_actions_outlined,
+            title: 'Notas Creadas',
+            value: '$notesCount', // This might count drafts if notesCount counts all.
+            // notesCount uses notes.length. If drafts are in notes, they are counted.
+            // User asked: "Los borradores no deben sumarse al contador de ventas totales"
+            // They didn't explicitly say not to count them in "Notas Creadas", but typically separate.
+            // Let's filter for now to be safe or clarify. Assuming 'Notas Creadas' means completed.
+            // value: '${notes.where((n) => n.status != 'BORRADOR').length}', 
+            // Stick to total count for now as "Pending" was replaced by "Created".
+            // Let's keep it consistent with totalSales which excludes drafts.
+            // Actually, let's show ALL notes count.
+            icon: Icons.description_outlined,
             iconColor: Colors.orange,
             iconBgColor: Colors.orange.withOpacity(0.1),
           ),
@@ -184,12 +203,15 @@ class _StatCard extends StatelessWidget {
                 child: Icon(icon, color: iconColor, size: 20),
               ),
               const SizedBox(width: 8),
-              Text(
-                title.toUpperCase(),
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.5,
-                  color: Colors.grey,
+              Expanded(
+                child: Text(
+                  title.toUpperCase(),
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5,
+                    color: Colors.grey,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -199,6 +221,7 @@ class _StatCard extends StatelessWidget {
             value,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
+              fontSize: 20,
             ),
           ),
         ],
@@ -277,7 +300,7 @@ class _CreateNoteButton extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     const Text(
-                      'Create New Note',
+                      'Nueva Cotización',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 18,
@@ -287,7 +310,7 @@ class _CreateNoteButton extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                      Text(
-                      'Draft a quote or log a meeting',
+                      'Crear una nueva nota de venta',
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.8),
                         fontSize: 12,
@@ -314,17 +337,9 @@ class _RecentNotesHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Text(
-          'Recent Notes',
+          'Notas Recientes',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
-          ),
-        ),
-        Text(
-          'View All',
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.primary,
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
           ),
         ),
       ],
@@ -333,49 +348,22 @@ class _RecentNotesHeader extends StatelessWidget {
 }
 
 class _RecentNotesList extends StatelessWidget {
-  const _RecentNotesList();
-
+  final List<Note> notes;
+  const _RecentNotesList({required this.notes});
+  
   @override
   Widget build(BuildContext context) {
-    // Dummy Data
-    final notes = [
-      (
-        title: 'Nakama Embroidery',
-        desc: 'E-commerce redesign & inventory setup.',
-        date: 'Oct 24, 2023',
-        amount: '\$8,500',
-        status: 'SENT',
-        color: Colors.teal,
-        icon: Icons.web,
-      ),
-      (
-        title: 'Boutique Cafe',
-        desc: 'Landing page for seasonal promo.',
-        date: 'Oct 22, 2023',
-        amount: '\$6,000',
-        status: 'DRAFT',
-        color: Colors.indigo,
-        icon: Icons.storefront,
-      ),
-      (
-        title: 'Caption MX',
-        desc: 'Annual maintenance & hosting renewal.',
-        date: 'Oct 20, 2023',
-        amount: '\$500/mo',
-        status: 'ACCEPTED',
-        color: Colors.purple,
-        icon: Icons.build_outlined,
-      ),
-    ];
+    // Limit to 5 items per user request
+    final recentNotes = notes.take(5).toList();
 
     return Column(
-      children: notes.map((note) => _NoteCard(note: note)).toList(),
+      children: recentNotes.map((note) => _NoteCard(note: note)).toList(),
     );
   }
 }
 
 class _NoteCard extends StatelessWidget {
-  final dynamic note;
+  final Note note;
   const _NoteCard({required this.note});
 
   @override
@@ -383,17 +371,17 @@ class _NoteCard extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    Color statusColor;
-    Color statusBg;
-    if (note.status == 'SENT') {
-      statusColor = Colors.teal;
-      statusBg = Colors.teal.withOpacity(0.1);
-    } else if (note.status == 'DRAFT') {
-      statusColor = Colors.grey;
-      statusBg = isDark ? Colors.grey.withOpacity(0.2) : Colors.grey.shade200;
-    } else {
-      statusColor = Colors.green;
-      statusBg = Colors.green.withOpacity(0.1);
+    // Status Logic
+    Color statusColor = Colors.teal;
+    Color statusBg = Colors.teal.withOpacity(0.1);
+    
+    // Match the dark badge style from image specifically for 'BORRADOR'
+    if (note.status == 'BORRADOR') {
+      statusColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+      statusBg = isDark ? const Color(0xFF1e293b) : Colors.grey.shade200; // Dark slate for dark mode
+    } else if (note.status == 'COMPLETADA') {
+      statusColor = Colors.blue; 
+      statusBg = Colors.blue.withOpacity(0.1);
     }
 
     return Container(
@@ -417,10 +405,10 @@ class _NoteCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: note.color.withOpacity(0.1),
+              color: statusBg.withOpacity(0.1), // Subtle
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(note.icon, color: note.color, size: 24),
+            child: Icon(Icons.description, color: statusColor, size: 24),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -430,12 +418,16 @@ class _NoteCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      note.title,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: Text(
+                        note.clientName.isEmpty ? 'Sin Cliente' : note.clientName,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    // Status Badge (Visual based on image)
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
@@ -455,7 +447,7 @@ class _NoteCard extends StatelessWidget {
                 ),
                  const SizedBox(height: 4),
                 Text(
-                  note.desc,
+                  note.folio,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: Colors.grey,
                   ),
@@ -465,19 +457,68 @@ class _NoteCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                      Text(
-                      note.date,
+                      DateFormat('dd MMM, yyyy').format(note.date),
                       style: const TextStyle(
                          color: Colors.grey,
                          fontSize: 12,
                          fontWeight: FontWeight.w500,
                       ),
                     ),
-                     Text(
-                      note.amount,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                         fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                     Row(
+                      children: [
+                        Text(
+                          '\$${note.totalAmount.toStringAsFixed(2)}',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                             fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        
+                        // Menu for Delete
+                        PopupMenuButton<String>(
+                          icon: Icon(Icons.more_vert, size: 18, color: Colors.grey[400]),
+                          padding: EdgeInsets.zero,
+                          onSelected: (value) {
+                            if (value == 'delete') {
+                              NotesService().deleteNote(note);
+                            }
+                          },
+                          itemBuilder: (context) => [
+                            if (note.status == 'COMPLETADA')
+                              const PopupMenuItem(
+                                value: 'view',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.picture_as_pdf, color: Colors.blue, size: 20),
+                                    SizedBox(width: 8),
+                                    Text('Ver PDF'),
+                                  ],
+                                ),
+                              ),
+                            if (note.status == 'BORRADOR')
+                              const PopupMenuItem(
+                                value: 'edit',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.edit, color: Colors.orange, size: 20),
+                                    SizedBox(width: 8),
+                                    Text('Editar'),
+                                  ],
+                                ),
+                              ),
+                            const PopupMenuItem(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete, color: Colors.red, size: 20),
+                                  SizedBox(width: 8),
+                                  Text('Eliminar'),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                     ),
                   ],
                 ),
               ],
@@ -485,155 +526,6 @@ class _NoteCard extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _QuickTemplatesHeader extends StatelessWidget {
-  const _QuickTemplatesHeader();
-  @override
-  Widget build(BuildContext context) {
-     return Text(
-       'Quick Templates',
-       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-    );
-  }
-}
-
-class _QuickTemplatesList extends StatelessWidget {
-  const _QuickTemplatesList();
-  
-  @override
-  Widget build(BuildContext context) {
-    final templates = [
-      (title: 'Web Design', sub: 'Standard Plan', icon: Icons.rocket_launch, color: Colors.teal),
-      (title: 'E-commerce', sub: 'Pro Plan', icon: Icons.shopping_cart, color: Colors.blue),
-      (title: 'Maintenance', sub: 'Monthly', icon: Icons.security, color: Colors.purple),
-    ];
-
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      clipBehavior: Clip.none,
-      child: Row(
-        children: templates.map((t) => Container(
-          width: 140,
-          margin: const EdgeInsets.only(right: 16),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-             color: Theme.of(context).cardTheme.color,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.1)),
-             boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 5,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-               Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: t.color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(t.icon, color: t.color, size: 24),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                t.title,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
-               const SizedBox(height: 4),
-              Text(
-                t.sub,
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-            ],
-          ),
-        )).toList(),
-      ),
-    );
-  }
-}
-
-class _CustomBottomNavBar extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    
-    return Container(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 8, top: 8),
-      decoration: BoxDecoration(
-        color: theme.scaffoldBackgroundColor,
-        border: Border(top: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade200)),
-      ),
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.center,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _NavItem(icon: Icons.dashboard_rounded, label: 'Home', isActive: true),
-              _NavItem(icon: Icons.description_rounded, label: 'Notes'),
-              const SizedBox(width: 48), // Space for FAB
-              _NavItem(icon: Icons.people_rounded, label: 'Clients'),
-              _NavItem(icon: Icons.settings_rounded, label: 'Settings'),
-            ],
-          ),
-           Positioned(
-            top: -40,
-            child: Material(
-              color: Colors.transparent,
-              elevation: 10,
-              shape: const CircleBorder(),
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF334155) : Colors.white,
-                  shape: BoxShape.circle,
-                ),
-                child: Container(
-                  height: 56,
-                  width: 56,
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF334155) : const Color(0xFF1e293b),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.mic, color: Colors.white),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isActive;
-
-  const _NavItem({required this.icon, required this.label, this.isActive = false});
-
-  @override
-  Widget build(BuildContext context) {
-    final color = isActive ? Theme.of(context).colorScheme.primary : Colors.grey;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, color: color),
-        Text(label, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w500)),
-      ],
     );
   }
 }

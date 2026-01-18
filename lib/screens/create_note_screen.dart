@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/note_model.dart';
+import '../services/notes_service.dart';
 import 'pdf_preview_screen.dart';
 
 class CreateNoteScreen extends StatefulWidget {
-  const CreateNoteScreen({super.key});
+  final Note? noteToEdit;
+  const CreateNoteScreen({super.key, this.noteToEdit});
 
   @override
   State<CreateNoteScreen> createState() => _CreateNoteScreenState();
@@ -15,35 +17,55 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
 
   // Client Details
   final _clientNameController = TextEditingController();
-  final _clientContactController = TextEditingController(); // WhatsApp/Email
-  final _clientAddressController = TextEditingController(); // Hidden in UI but keeping for model
+  final _clientContactController = TextEditingController(); 
+  final _clientAddressController = TextEditingController(); // Keeping for model consistency
   
   // Date & Folio
   DateTime _selectedDate = DateTime.now();
   late String _folio; 
 
+  // Check if we are editing
+  bool get _isEditing => widget.noteToEdit != null;
+
   @override
   void initState() {
     super.initState();
-    _generateFolio();
+    if (_isEditing) {
+      _loadNoteData(widget.noteToEdit!);
+    } else {
+      _generateFolio();
+    }
+  }
+
+  void _loadNoteData(Note note) {
+    _clientNameController.text = note.clientName;
+    _clientContactController.text = note.clientAddress; // Using address field for contact currently based on previous code
+    _selectedDate = note.date;
+    _folio = note.folio;
+    _addVat = note.addVat;
+    _additionalNotesController.text = note.additionalNotes ?? '';
+    // Load Items - Deep copy to avoid modifying original info until saved
+    _items.addAll(note.items.map((item) => NoteItem(
+      description: item.description,
+      quantity: item.quantity,
+      price: item.price
+    )));
   }
 
   void _generateFolio() {
-    // Logic to generate #IMP-YYYY-NNN
-    // Since we don't have a backend yet, we'll simulate a count. 
-    // In a real app, this would query the DB for the last ID + 1.
+    // Generate Folio: #IMP-YYYY-NNN
     final year = DateTime.now().year;
-    final count = 43; // Mocking that the last one was 042
+    // Logic: Start at 001. 
+    // notesCount is current size. Next ID is notesCount + 1.
+    final count = NotesService().notesCount + 1; 
     _folio = "#IMP-$year-${count.toString().padLeft(3, '0')}";
   }
 
-  // Items
-  final List<NoteItem> _items = [
-    NoteItem(description: "Diseño Web - Plan Estándar", price: 7000, quantity: 1), // Sample initial item
-  ];
+  // Items - Empty by default
+  final List<NoteItem> _items = [];
 
   // Logic
-  bool _addVat = false; // IVA
+  bool _addVat = false; 
   final _additionalNotesController = TextEditingController();
 
   double get _subtotal => _items.fold(0, (sum, item) => sum + item.total);
@@ -85,6 +107,33 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
     }
   }
 
+  // Explicit Draft Save
+  void _saveDraft() {
+     final note = Note(
+        clientName: _clientNameController.text.isEmpty ? 'Borrador Sin Nombre' : _clientNameController.text,
+        clientAddress: _clientContactController.text,
+        date: _selectedDate,
+        items: List.from(_items),
+        status: 'BORRADOR', 
+        folio: _folio,
+        addVat: _addVat,
+        additionalNotes: _additionalNotesController.text,
+      );
+      
+      if (_isEditing) {
+        NotesService().updateNote(widget.noteToEdit!, note);
+      } else {
+        NotesService().addNote(note);
+      }
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Guardado en borradores'), duration: Duration(seconds: 1)),
+      );
+      
+      // Optional: Pop after save or stay? Usually stay or pop. Let's pop to confirm saved.
+      Navigator.pop(context);
+  }
+
   void _generateNote() {
     if (_formKey.currentState!.validate()) {
        if (_items.isEmpty) {
@@ -93,25 +142,33 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
         );
         return;
       }
-      // Note: Model update might be needed for proper structure (contact, folio, etc.)
-      // For now passing basic info to PDF
+
       final note = Note(
         clientName: _clientNameController.text,
-        clientAddress: _clientContactController.text, // Using contact as address/subtitle for PDF for now
+        clientAddress: _clientContactController.text, 
         date: _selectedDate,
         items: List.from(_items),
-        status: 'BORRADOR', // Draft
+        status: 'COMPLETADA', // Valid note logic
         folio: _folio,
         addVat: _addVat,
         additionalNotes: _additionalNotesController.text,
       );
+
+      // Save as Completed
+      if (_isEditing) {
+        NotesService().updateNote(widget.noteToEdit!, note);
+      } else {
+        NotesService().addNote(note);
+      }
 
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => PdfPreviewScreen(note: note),
         ),
-      );
+      ).then((_) {
+        // Do nothing on return to prevent draft creation
+      });
     }
   }
 
@@ -120,7 +177,6 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    // Colors roughly matching the Tailwind config
     final colorSurface = theme.cardTheme.color;
     final colorInput = isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9);
     final colorTextSec = isDark ? Colors.white70 : Colors.black54;
@@ -142,14 +198,19 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
           color: colorTextSec,
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.pop(context), // Normal pop
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.more_horiz),
-            color: colorTextSec,
-            onPressed: () {},
+          // Save Draft Button
+          TextButton.icon(
+            onPressed: _saveDraft,
+            icon: const Icon(Icons.save_as_outlined, size: 18),
+            label: const Text("Borrador"),
+            style: TextButton.styleFrom(
+              foregroundColor: colorTextSec,
+            ),
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: Stack(
@@ -162,7 +223,7 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Page Title
-                  Text('Nueva Cotización', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+                  Text(_isEditing ? 'Editar Nota' : 'Nueva Cotización', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
                   Text(
                     'Complete los detalles para generar una nota de venta.',
@@ -179,7 +240,7 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
                       TextFormField(
                         controller: _clientNameController,
                         style: theme.textTheme.bodyMedium,
-                        decoration: _inputDecoration(context, 'Ej. Nakama Bordados'),
+                        decoration: _inputDecoration(context, 'Ej. ImperioDev'),
                         validator: (v) => v!.isEmpty ? 'Requerido' : null,
                       ),
                       const SizedBox(height: 16),
@@ -276,21 +337,27 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        ListView.separated(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: _items.length,
-                          separatorBuilder: (ctx, i) => const SizedBox(height: 12),
-                          itemBuilder: (ctx, i) {
-                            return _ItemCard(
-                              key: ValueKey(_items[i]),
-                              item: _items[i],
-                              onDelete: () => _removeItem(i),
-                              onUpdate: () => setState(() {}),
-                              isDark: isDark,
-                            );
-                          },
-                        ),
+                        if (_items.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Text("No hay servicios añadidos", style: TextStyle(color: Colors.grey[400])),
+                          )
+                        else
+                          ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: _items.length,
+                            separatorBuilder: (ctx, i) => const SizedBox(height: 12),
+                            itemBuilder: (ctx, i) {
+                              return _ItemCard(
+                                key: ValueKey(_items[i]),
+                                item: _items[i],
+                                onDelete: () => _removeItem(i),
+                                onUpdate: () => setState(() {}),
+                                isDark: isDark,
+                              );
+                            },
+                          ),
                         const SizedBox(height: 16),
                         InkWell(
                           onTap: _addItem,
