@@ -1,5 +1,20 @@
 # Changelog
 
+## [3.5.0] - 2026-01-19
+### Agregado
+- **Edición de Clientes**: Ahora es posible editar clientes existentes (nombre, dirección, contactos).
+- **Campos Separados**: Teléfono y correo electrónico ahora tienen campos dedicados.
+- **Códigos de País**: Selección de código de país con bandera para números de teléfono (Latinoamérica y Europa).
+- **Tipos de Nota**: Opción para seleccionar entre "Cotización" y "Nota de Venta".
+- **Seleccionar Todas**: Nueva opción para seleccionar todas las notas en la lista con un solo toque.
+
+### Cambiado
+- **PDF Preview**: Se eliminó el botón directo de WhatsApp. Se mejoró la función "Compartir" para incluir un mensaje con saludo, tipo de nota, folio y total.
+- **Seguridad**: Se previene la navegación hacia atrás accidental en la vista previa del PDF (móvil).
+- **Correcciones**:
+    - Arreglado el autocompletado del nombre del cliente al crear nota desde la pantalla de clientes.
+    - Validación de número de teléfono antes de acciones de compartir.
+
 ## [3.4.0] - 2026-01-18
 ### Agregado
 - Persistencia de datos para Notas y Clientes usando `shared_preferences`.

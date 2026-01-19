@@ -3,6 +3,7 @@ class Client {
   String name;
   String email;
   String phone;
+  String countryCode; // e.g. +52
   String address;
 
   Client({
@@ -10,6 +11,7 @@ class Client {
     required this.name,
     this.email = '',
     this.phone = '',
+    this.countryCode = '+52',
     this.address = '',
   });
 
@@ -19,6 +21,7 @@ class Client {
       'name': name,
       'email': email,
       'phone': phone,
+      'countryCode': countryCode,
       'address': address,
     };
   }
@@ -29,6 +32,7 @@ class Client {
       name: json['name'] ?? '',
       email: json['email'] ?? '',
       phone: json['phone'] ?? '',
+      countryCode: json['countryCode'] ?? '+52',
       address: json['address'] ?? '',
     );
   }

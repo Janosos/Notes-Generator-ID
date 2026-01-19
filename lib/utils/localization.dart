@@ -13,6 +13,8 @@ class AppLocalizations {
     'es': {
       'app_title': 'IMPERIODEV',
       'greeting': 'Hola 👋',
+      'share_msg_greeting': 'Hola',
+      'share_msg_body': 'aquí te comparto la %s %s por un total de %s', // %s: Type, Folio, Total
       'dashboard_subtitle': 'Aquí está tu resumen de ventas.',
       'total_sales': 'Ventas Totales',
       'notes_created': 'Notas Creadas',
@@ -101,10 +103,19 @@ class AppLocalizations {
       'remove_item': 'Eliminar',
       'label_quantity': 'CANT.',
       'label_unit_price': 'PRECIO UNITARIO',
+      'note_type_quote': 'Cotización',
+      'note_type_sale': 'Nota de Venta',
+      'label_phone': 'Teléfono',
+      'label_email': 'Correo',
+      'whatsapp_error_no_phone': 'No se agregó número telefónico del cliente',
+      'edit_client': 'Editar Cliente',
+      'client_details_updated': 'Detalles del cliente actualizados',
     },
     'en': {
       'app_title': 'IMPERIODEV',
       'greeting': 'Hello 👋',
+      'share_msg_greeting': 'Hello',
+      'share_msg_body': 'here is the %s %s for a total of %s',
       'dashboard_subtitle': 'Here is your sales summary.',
       'total_sales': 'Total Sales',
       'notes_created': 'Notes Created',
@@ -193,6 +204,13 @@ class AppLocalizations {
       'remove_item': 'Remove',
       'label_quantity': 'QTY',
       'label_unit_price': 'UNIT PRICE',
+      'note_type_quote': 'Quote',
+      'note_type_sale': 'Sales Note',
+      'label_phone': 'Phone',
+      'label_email': 'Email',
+      'whatsapp_error_no_phone': 'Client phone number missing',
+      'edit_client': 'Edit Client',
+      'client_details_updated': 'Client details updated',
     },
   };
 

@@ -4,6 +4,7 @@ import '../models/client_model.dart';
 import '../models/note_model.dart';
 import '../services/notes_service.dart';
 import '../utils/localization.dart';
+import '../utils/country_codes.dart';
 import 'pdf_preview_screen.dart';
 
 class CreateNoteScreen extends StatefulWidget {
@@ -20,12 +21,15 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
 
   // Client Details
   final _clientNameController = TextEditingController();
-  final _clientContactController = TextEditingController(); 
-  final _clientAddressController = TextEditingController(); // Keeping for model consistency
+  final _clientEmailController = TextEditingController(); 
+  final _clientPhoneController = TextEditingController();
+  final _clientAddressController = TextEditingController(); 
   
   // Date & Folio
   DateTime _selectedDate = DateTime.now();
   late String _folio; 
+  String _noteType = 'COTIZACION'; // Default
+  String _selectedCountryCode = '+52'; 
 
   // Check if we are editing
   bool get _isEditing => widget.noteToEdit != null;
@@ -38,15 +42,43 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
     } else {
       _generateFolio();
       if (widget.clientToUse != null) {
-        _clientNameController.text = widget.clientToUse!.name;
-        _clientContactController.text = widget.clientToUse!.email.isNotEmpty ? widget.clientToUse!.email : widget.clientToUse!.phone;
+        _clientNameController.text = widget.clientToUse!.name; // Restored Name initialization
+        _clientEmailController.text = widget.clientToUse!.email;
+        _clientPhoneController.text = widget.clientToUse!.phone; 
+        _selectedCountryCode = widget.clientToUse!.countryCode; // Use Client's code
+        _clientAddressController.text = widget.clientToUse!.address;
       }
     }
   }
 
   void _loadNoteData(Note note) {
     _clientNameController.text = note.clientName;
-    _clientContactController.text = note.clientAddress; // Using address field for contact currently based on previous code
+    _clientEmailController.text = note.clientEmail;
+    // Simple parsing assumption: if phone starts with +something, try to extract. 
+    // This is skipped for simplicity, we just put whole text in phone if we can't easily separate, 
+    // OR we can assume we only stored the number part? 
+    // Actually, in Client screen we store separated? No, Client model has separate `countryCode`. 
+    // Note model does NOT have `countryCode` field, just `clientPhone`. 
+    // So distinct storage is lost in Note unless we update Note model OR just parse string. 
+    // Let's assume we populate `clientPhone` with full number in Note. 
+    // We can try to match the prefix against `CountryCodes.list`.
+    
+    String fullPhone = note.clientPhone;
+    String matchedCode = '+52';
+    String numberPart = fullPhone;
+
+    for (var c in CountryCodes.list) {
+      if (fullPhone.startsWith(c.code)) {
+        matchedCode = c.code;
+        numberPart = fullPhone.substring(c.code.length).trim();
+        break;
+      }
+    }
+    
+    _selectedCountryCode = matchedCode;
+    _clientPhoneController.text = numberPart;
+    _clientAddressController.text = note.clientAddress;
+    _noteType = note.type;
     _selectedDate = note.date;
     _folio = note.folio;
     _addVat = note.addVat;
@@ -82,7 +114,8 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
   @override
   void dispose() {
     _clientNameController.dispose();
-    _clientContactController.dispose();
+    _clientEmailController.dispose();
+    _clientPhoneController.dispose();
     _clientAddressController.dispose();
     _additionalNotesController.dispose();
     super.dispose();
@@ -118,7 +151,10 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
   void _saveDraft() {
      final note = Note(
         clientName: _clientNameController.text.isEmpty ? 'Borrador Sin Nombre' : _clientNameController.text,
-        clientAddress: _clientContactController.text,
+        clientAddress: _clientAddressController.text,
+        clientEmail: _clientEmailController.text,
+        clientPhone: '$_selectedCountryCode ${_clientPhoneController.text.trim()}',
+        type: _noteType,
         date: _selectedDate,
         items: List.from(_items),
         status: 'BORRADOR', 
@@ -137,7 +173,6 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
         SnackBar(content: Text(AppLocalizations.of(context).translate('draft_saved')), duration: const Duration(seconds: 1)),
       );
       
-      // Optional: Pop after save or stay? Usually stay or pop. Let's pop to confirm saved.
       Navigator.pop(context);
   }
 
@@ -152,7 +187,10 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
 
       final note = Note(
         clientName: _clientNameController.text,
-        clientAddress: _clientContactController.text, 
+        clientAddress: _clientAddressController.text,
+        clientEmail: _clientEmailController.text,
+        clientPhone: '$_selectedCountryCode ${_clientPhoneController.text.trim()}',
+        type: _noteType, 
         date: _selectedDate,
         items: List.from(_items),
         status: 'COMPLETADA', // Valid note logic
@@ -243,6 +281,34 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
                     title: AppLocalizations.of(context).translate('section_client'),
                     icon: Icons.person,
                     children: [
+                       // Note Type Selector
+                       Row(
+                         children: [
+                           Expanded(
+                             child: RadioListTile<String>(
+                               title: Text(AppLocalizations.of(context).translate('note_type_quote'), style: const TextStyle(fontSize: 14)),
+                               value: 'COTIZACION', 
+                               groupValue: _noteType, 
+                               onChanged: (v) => setState(() => _noteType = v!),
+                               contentPadding: EdgeInsets.zero,
+                               activeColor: theme.colorScheme.primary,
+                             ),
+                           ),
+                           Expanded(
+                             child: RadioListTile<String>(
+                               title: Text(AppLocalizations.of(context).translate('note_type_sale'), style: const TextStyle(fontSize: 14)),
+                               value: 'VENTA', 
+                               groupValue: _noteType, 
+                               onChanged: (v) => setState(() => _noteType = v!),
+                               contentPadding: EdgeInsets.zero,
+                               activeColor: theme.colorScheme.primary,
+                             ),
+                           ),
+                         ],
+                       ),
+                       const Divider(),
+                       const SizedBox(height: 12),
+
                       _Label(AppLocalizations.of(context).translate('client_name_hint')),
                       TextFormField(
                         controller: _clientNameController,
@@ -253,10 +319,6 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
                       const SizedBox(height: 16),
                       Row(
                         children: [
-// ... (skip date/folio lines if safe, or match them. Let's try to match just the Client Name Field first)
-// Actually I can match by context.
-// Let's do separate calls for safety.
-
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -267,7 +329,7 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                                     decoration: BoxDecoration(
-                                      color: colorInput,
+                                      color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Row(
@@ -290,7 +352,7 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
                                   width: double.infinity,
                                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                                   decoration: BoxDecoration(
-                                    color: colorInput,
+                                    color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text(
@@ -304,11 +366,77 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      _Label(AppLocalizations.of(context).translate('label_contact')),
+                      // Phone and Email
+                      Row(
+                        children: [
+                          Expanded(
+                             child: Column(
+                               crossAxisAlignment: CrossAxisAlignment.start,
+                               children: [
+                                 _Label(AppLocalizations.of(context).translate('label_phone')),
+                                 Row(
+                                   children: [
+                                     Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                                      decoration: BoxDecoration(
+                                        color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
+                                        borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), bottomLeft: Radius.circular(12)),
+                                      ),
+                                      child: DropdownButton<String>(
+                                        value: _selectedCountryCode,
+                                        underline: const SizedBox(),
+                                        menuMaxHeight: 300,
+                                        items: CountryCodes.list.map((c) => DropdownMenuItem(
+                                          value: c.code, 
+                                          child: Text('${c.flag} ${c.code}')
+                                        )).toList(),
+                                        onChanged: (val) {
+                                           if (val != null) setState(() => _selectedCountryCode = val);
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Expanded(
+                                      child: TextFormField(
+                                        controller: _clientPhoneController,
+                                        style: theme.textTheme.bodyMedium,
+                                        keyboardType: TextInputType.phone,
+                                        decoration: _inputDecoration(context, '123456...', icon: null).copyWith(
+                                          border: OutlineInputBorder(
+                                            borderRadius: const BorderRadius.only(topRight: Radius.circular(12), bottomRight: Radius.circular(12)),
+                                            borderSide: BorderSide.none,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                   ],
+                                 ),
+                               ],
+                             ),
+                          ),
+                          const SizedBox(width: 12),
+                           Expanded(
+                             child: Column(
+                               crossAxisAlignment: CrossAxisAlignment.start,
+                               children: [
+                                 _Label(AppLocalizations.of(context).translate('label_email')),
+                                 TextFormField(
+                                  controller: _clientEmailController,
+                                  style: theme.textTheme.bodyMedium,
+                                  keyboardType: TextInputType.emailAddress,
+                                  decoration: _inputDecoration(context, 'Email', icon: Icons.email),
+                                ),
+                               ],
+                             ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      _Label(AppLocalizations.of(context).translate('client_address')),
                        TextFormField(
-                        controller: _clientContactController,
+                        controller: _clientAddressController,
                         style: theme.textTheme.bodyMedium,
-                        decoration: _inputDecoration(context, AppLocalizations.of(context).translate('hint_contact'), icon: Icons.alternate_email),
+                        decoration: _inputDecoration(context, 'Dirección', icon: Icons.location_on),
                       ),
                     ],
                   ),

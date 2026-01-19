@@ -12,8 +12,16 @@ class PdfService {
     
     // Localization Map for PDF
     final isEn = languageCode == 'en';
+    
+    // Determine Title based on Type
+    String titleKey = 'quote';
+    if (note.type == 'VENTA') {
+      titleKey = 'sale_note';
+    }
+    
     final labels = {
       'quote': isEn ? 'QUOTE' : 'COTIZACIÓN',
+      'sale_note': isEn ? 'SALES NOTE' : 'NOTA DE VENTA',
       'prepared_for': isEn ? 'PREPARED FOR' : 'PREPARADO PARA',
       'concept': isEn ? 'CONCEPT' : 'CONCEPTO',
       'total_header': isEn ? 'TOTAL' : 'TOTAL', // Same
@@ -24,8 +32,8 @@ class PdfService {
       'total': isEn ? 'Total (MXN)' : 'Total (MXN)',
       'additional_notes': isEn ? 'ADDITIONAL NOTES' : 'NOTAS ADICIONALES',
       'footer': isEn 
-          ? 'This quote is valid for 15 days. Thank you for trusting ImperioDev.'
-          : 'Esta cotización es válida por 15 días. Gracias por confiar en ImperioDev.',
+          ? 'This document is valid for 15 days. Thank you for trusting ImperioDev.'
+          : 'Este documento es válido por 15 días. Gracias por confiar en ImperioDev.',
       'slogan': isEn ? 'Transforming ideas into code\nHermosillo, Mexico' : 'Transformando ideas en código\nHermosillo, México',
     };
 
@@ -78,7 +86,7 @@ class PdfService {
                          pw.Column(
                            crossAxisAlignment: pw.CrossAxisAlignment.start,
                            children: [
-                             pw.Text(labels['quote']!, style: pw.TextStyle(color: PdfColors.grey400, fontSize: 10, fontWeight: pw.FontWeight.bold, letterSpacing: 1.5)),
+                             pw.Text(labels[titleKey]!, style: pw.TextStyle(color: PdfColors.grey400, fontSize: 10, fontWeight: pw.FontWeight.bold, letterSpacing: 1.5)),
                              pw.SizedBox(height: 4),
                              pw.Text(note.folio, style: pw.TextStyle(color: textDark, fontSize: 12, fontWeight: pw.FontWeight.bold)),
                              pw.SizedBox(height: 2),
@@ -120,7 +128,11 @@ class PdfService {
                            if (note.clientAddress.isNotEmpty) ...[
                               pw.SizedBox(height: 2),
                               pw.Text(note.clientAddress, style: pw.TextStyle(color: textGrey, fontSize: 10)),
-                           ]
+                           ],
+                           if (note.clientPhone.isNotEmpty || note.clientEmail.isNotEmpty) ...[
+                              pw.SizedBox(height: 2),
+                              pw.Text('${note.clientPhone.isNotEmpty ? note.clientPhone : ""} ${note.clientEmail.isNotEmpty ? "• " + note.clientEmail : ""}', style: pw.TextStyle(color: textGrey, fontSize: 10)),
+                           ],
                          ],
                        ),
                      ),

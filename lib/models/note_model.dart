@@ -37,6 +37,9 @@ class Note {
   String folio;
   bool addVat;
   String additionalNotes;
+  String type; // 'COTIZACION' or 'VENTA'
+  String clientPhone;
+  String clientEmail;
 
   Note({
     required this.clientName,
@@ -47,6 +50,9 @@ class Note {
     this.folio = '',
     this.addVat = false,
     this.additionalNotes = '',
+    this.type = 'COTIZACION',
+    this.clientPhone = '',
+    this.clientEmail = '',
   });
 
   double get subtotal => items.fold(0, (sum, item) => sum + item.total);
@@ -63,6 +69,9 @@ class Note {
       'folio': folio,
       'addVat': addVat,
       'additionalNotes': additionalNotes,
+      'type': type,
+      'clientPhone': clientPhone,
+      'clientEmail': clientEmail,
     };
   }
 
@@ -76,6 +85,9 @@ class Note {
       folio: json['folio'] ?? '',
       addVat: json['addVat'] ?? false,
       additionalNotes: json['additionalNotes'] ?? '',
+      type: json['type'] ?? 'COTIZACION',
+      clientPhone: json['clientPhone'] ?? '',
+      clientEmail: json['clientEmail'] ?? '',
     );
   }
 }

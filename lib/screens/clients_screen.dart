@@ -4,6 +4,7 @@ import '../services/clients_service.dart';
 import 'create_note_screen.dart';
 import 'notes_list_screen.dart';
 import '../utils/localization.dart';
+import '../utils/country_codes.dart';
 
 class ClientsScreen extends StatefulWidget {
   const ClientsScreen({super.key});
@@ -15,48 +16,131 @@ class ClientsScreen extends StatefulWidget {
 class _ClientsScreenState extends State<ClientsScreen> {
   final _clientsService = ClientsService();
 
-  void _showAddClientDialog() {
-    final nameCtrl = TextEditingController();
-    final contactCtrl = TextEditingController(); // Email or Phone
+  void _showAddEditClientDialog({Client? clientToEdit}) {
+    final isEditing = clientToEdit != null;
+    final nameCtrl = TextEditingController(text: clientToEdit?.name ?? '');
+    final emailCtrl = TextEditingController(text: clientToEdit?.email ?? '');
+    final phoneCtrl = TextEditingController(text: clientToEdit?.phone ?? '');
+    final addressCtrl = TextEditingController(text: clientToEdit?.address ?? '');
+    
+    // Country Code logic
+    String selectedCountryCode = clientToEdit?.countryCode ?? '+52';
+    // Ensure selected is in list, if not add it practically or just default (simple check)
+    // We will trust the list covers most. If current not in list, we might have an issue displaying, 
+    // but Dropdown can handle 'value' matching. If distinct custom code exists, we should probably add it or handle unique.
+    // For now assuming the huge list covers it.
+
     final loc = AppLocalizations.of(context);
     
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(loc.translate('add_client')),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameCtrl,
-              decoration: InputDecoration(labelText: loc.translate('client_name_hint'), hintText: 'Ej. ImperioDev'),
-              textCapitalization: TextCapitalization.words,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            title: Text(isEditing ? loc.translate('edit_client') : loc.translate('add_client')),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: nameCtrl,
+                    decoration: InputDecoration(
+                      labelText: loc.translate('client_name'), 
+                      hintText: loc.translate('hint_client_name'),
+                      filled: true,
+                    ),
+                    textCapitalization: TextCapitalization.words,
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: emailCtrl,
+                    decoration: InputDecoration(
+                      labelText: loc.translate('label_email'), 
+                      hintText: loc.translate('hint_contact'),
+                      prefixIcon: const Icon(Icons.email_outlined, size: 20),
+                      filled: true,
+                    ),
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).brightness == Brightness.dark ? Colors.black26 : Colors.grey.shade200,
+                          borderRadius: const BorderRadius.only(topLeft: Radius.circular(4), bottomLeft: Radius.circular(4)),
+                          border: Border(bottom: BorderSide(color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.black54))
+                        ),
+                        child: DropdownButton<String>(
+                          value: selectedCountryCode,
+                          underline: const SizedBox(),
+                          menuMaxHeight: 300, // Limit height since list is long
+                          items: CountryCodes.list.map((c) => DropdownMenuItem(
+                            value: c.code, 
+                            child: Text('${c.flag} ${c.code}')
+                          )).toList(),
+                          onChanged: (val) {
+                             if (val != null) setDialogState(() => selectedCountryCode = val);
+                          },
+                        ),
+                      ),
+                      Expanded(
+                        child: TextField(
+                          controller: phoneCtrl,
+                          decoration: InputDecoration(
+                            labelText: loc.translate('label_phone'), 
+                            hintText: '1234567890',
+                            filled: true,
+                          ),
+                          keyboardType: TextInputType.phone,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                   TextField(
+                    controller: addressCtrl,
+                    decoration: InputDecoration(
+                      labelText: loc.translate('client_address'),
+                      filled: true,
+                    ),
+                    maxLines: 2,
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: contactCtrl,
-              decoration: InputDecoration(labelText: loc.translate('contact_hint'), hintText: 'Email / Tel'),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(loc.translate('cancel'))),
-          ElevatedButton(
-            onPressed: () {
-              if (nameCtrl.text.isNotEmpty) {
-                final newClient = Client(
-                  id: DateTime.now().toString(),
-                  name: nameCtrl.text,
-                  email: contactCtrl.text.contains('@') ? contactCtrl.text : '',
-                  phone: !contactCtrl.text.contains('@') ? contactCtrl.text : '',
-                ); // Simple heuristic
-                _clientsService.addClient(newClient);
-                Navigator.pop(ctx);
-              }
-            },
-            child: Text(loc.translate('save')),
-          ),
-        ],
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: Text(loc.translate('cancel'))),
+              ElevatedButton(
+                onPressed: () {
+                  if (nameCtrl.text.isNotEmpty) {
+                    final newClient = Client(
+                      id: isEditing ? clientToEdit.id : DateTime.now().toString(),
+                      name: nameCtrl.text,
+                      email: emailCtrl.text,
+                      phone: phoneCtrl.text,
+                      countryCode: selectedCountryCode,
+                      address: addressCtrl.text,
+                    );
+                    
+                    if (isEditing) {
+                        _clientsService.updateClient(clientToEdit!, newClient); 
+                    } else {
+                        _clientsService.addClient(newClient);
+                    }
+                    
+                    Navigator.pop(ctx);
+                    if (isEditing) {
+                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.translate('client_details_updated'))));
+                    }
+                  }
+                },
+                child: Text(loc.translate('save')),
+              ),
+            ],
+          );
+        }
       ),
     );
   }
@@ -99,7 +183,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
         elevation: 0,
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showAddClientDialog,
+        onPressed: () => _showAddEditClientDialog(),
         icon: const Icon(Icons.person_add),
         label: Text(loc.translate('add_client')),
       ),
@@ -131,6 +215,7 @@ class _ClientsScreenState extends State<ClientsScreen> {
                return _ClientCard(
                  client: client,
                  onDelete: () => _confirmDelete(client),
+                 onEdit: () => _showAddEditClientDialog(clientToEdit: client),
                  onViewHistory: () {
                    Navigator.push(
                      context,
@@ -155,12 +240,14 @@ class _ClientsScreenState extends State<ClientsScreen> {
 class _ClientCard extends StatelessWidget {
   final Client client;
   final VoidCallback onDelete;
+  final VoidCallback onEdit;
   final VoidCallback onViewHistory;
   final VoidCallback onCreateNote;
 
   const _ClientCard({
     required this.client,
     required this.onDelete,
+    required this.onEdit,
     required this.onViewHistory,
     required this.onCreateNote,
   });
@@ -210,6 +297,7 @@ class _ClientCard extends StatelessWidget {
             onSelected: (val) {
               if (val == 'note') onCreateNote();
               if (val == 'history') onViewHistory();
+              if (val == 'edit') onEdit(); // New
               if (val == 'delete') onDelete();
             },
             itemBuilder: (ctx) {
@@ -222,6 +310,10 @@ class _ClientCard extends StatelessWidget {
                 PopupMenuItem(
                   value: 'history', 
                   child: Row(children: [const Icon(Icons.history, color: Colors.grey), const SizedBox(width: 8), Text(loc.translate('view_history'))])
+                ),
+                PopupMenuItem(
+                  value: 'edit', 
+                  child: Row(children: [const Icon(Icons.edit, color: Colors.orange), const SizedBox(width: 8), Text(loc.translate('edit_client'))])
                 ),
                  PopupMenuItem(
                   value: 'delete', 

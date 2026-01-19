@@ -19,8 +19,13 @@ class PdfPreviewScreen extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+    return PopScope(
+      canPop: false, // Prevent back navigation
+      onPopInvoked: (didPop) {
+        // Do nothing, force user to use the home button or other actions
+      },
+      child: Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
       // Custom Nav
       appBar: AppBar(
         title: Text(AppLocalizations.of(context).translate('preview_title'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
@@ -94,43 +99,21 @@ class PdfPreviewScreen extends StatelessWidget {
                            final file = File('${tempDir.path}/cotizacion_$safeFolio.pdf');
                            await file.writeAsBytes(bytes);
                            
-                           await Share.shareXFiles([XFile(file.path)], text: 'Cotización ${note.folio}');
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
-                          foregroundColor: isDark ? Colors.white : Colors.black87,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                        icon: const Icon(Icons.share, size: 20),
-                        label: Text(AppLocalizations.of(context).translate('share_file')),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () async {
-                          // Allow sending a message to a number or just generic share
-                          // Assuming clientAddress field might contain a number if we parsed it, 
-                          // but for now let's just create a generic link or try to use the one from contact field specific
-                          
-                          // Simplified: Try to open specific number if it looks like one, or just open WA
-                          // Note: In real app, we need to clean the number.
-                          String phone = ''; 
-                          // Minimal effort parsing for demo:
-                          if (note.clientAddress.contains(RegExp(r'\d'))) {
-                             phone = note.clientAddress.replaceAll(RegExp(r'[^\d]'), '');
-                          }
-                          
-                          final text = Uri.encodeComponent("Hola ${note.clientName}, aquí te comparto la cotización ${note.folio}.\n\nTotal: \$${note.totalAmount.toStringAsFixed(2)}");
-                          final url = Uri.parse("https://wa.me/$phone?text=$text");
-                          
-                          if (await canLaunchUrl(url)) {
-                            await launchUrl(url);
-                          } else {
-                            // Fallback or error snackbar (not implemented here)
-                          }
+                           // Construct Message
+                           final loc = AppLocalizations.of(context);
+                           final greeting = loc.translate('share_msg_greeting');
+                           final typeName = note.type == 'VENTA' ? loc.translate('note_type_sale') : loc.translate('note_type_quote');
+                           // Format: "Hola [Client], aquí te comparto la [Tipo] [Folio] por un total de [Total]"
+                           // We need to support the placeholders manually since I didn't add a String formatter helper yet.
+                           // Simplest: Replace tokens.
+                           String body = loc.translate('share_msg_body');
+                           body = body.replaceFirst('%s', typeName);
+                           body = body.replaceFirst('%s', note.folio);
+                           body = body.replaceFirst('%s', '\$${note.totalAmount.toStringAsFixed(2)}');
+                           
+                           final fullMessage = '$greeting ${note.clientName},\n$body';
+                           
+                           await Share.shareXFiles([XFile(file.path)], text: fullMessage);
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: theme.colorScheme.primary,
@@ -140,8 +123,8 @@ class PdfPreviewScreen extends StatelessWidget {
                           shadowColor: theme.colorScheme.primary.withOpacity(0.3),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
-                        icon: const Icon(Icons.send, size: 20),
-                        label: Text(AppLocalizations.of(context).translate('whatsapp')), // Shortened for space
+                        icon: const Icon(Icons.share, size: 20),
+                        label: Text(AppLocalizations.of(context).translate('share_file')),
                       ),
                     ),
                   ],
@@ -176,6 +159,7 @@ class PdfPreviewScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }
