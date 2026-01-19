@@ -6,6 +6,7 @@
     - **Español**: `cotizacion_FOLIO.pdf` o `nota_de_venta_FOLIO.pdf`
     - **Inglés**: `quote_FOLIO.pdf` o `sales_note_FOLIO.pdf`
 - **Lanzamiento Windows**: Se generó el ejecutable para Windows (`Notes_V3.5.2_Windows.zip`) con el icono personalizado.
+- **Lanzamiento Web**: Se generó la versión web empaquetada (`Notes_V3.5.2_Web.zip`) lista para despliegue.
 
 ## [3.5.1] - 2026-01-19
 ### Interfaz de Usuario (Mobile)
