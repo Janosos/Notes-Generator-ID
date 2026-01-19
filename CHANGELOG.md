@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.5.1] - 2026-01-19
+### Interfaz de Usuario (Mobile)
+- **Diseño Mejorado**: Los campos de Teléfono y Correo en la creación de notas ahora se muestran apilados verticalmente para ofrecer mayor espacio y claridad en pantallas pequeñas.
+- **Selector de País**: Mejor integración visual del selector de código de país.
+- **PDF Separador**: Se ajustó el separador de información de contacto en el encabezado del PDF para mayor legibilidad (` | `).
+
 ## [3.5.0] - 2026-01-19
 ### Agregado
 - **Edición de Clientes**: Ahora es posible editar clientes existentes (nombre, dirección, contactos).

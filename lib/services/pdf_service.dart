@@ -131,7 +131,7 @@ class PdfService {
                            ],
                            if (note.clientPhone.isNotEmpty || note.clientEmail.isNotEmpty) ...[
                               pw.SizedBox(height: 2),
-                              pw.Text('${note.clientPhone.isNotEmpty ? note.clientPhone : ""} ${note.clientEmail.isNotEmpty ? "• " + note.clientEmail : ""}', style: pw.TextStyle(color: textGrey, fontSize: 10)),
+                              pw.Text('${note.clientPhone.isNotEmpty ? note.clientPhone : ""}  ${note.clientEmail.isNotEmpty ? (note.clientPhone.isNotEmpty ? "   |   " : "") + note.clientEmail : ""}', style: pw.TextStyle(color: textGrey, fontSize: 10)),
                            ],
                          ],
                        ),

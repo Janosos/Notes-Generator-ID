@@ -367,32 +367,34 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
                       ),
                       const SizedBox(height: 16),
                       // Phone and Email
-                      Row(
+                      // Phone and Email - Stacked for better mobile view
+                      Column(
                         children: [
-                          Expanded(
-                             child: Column(
+                             Column(
                                crossAxisAlignment: CrossAxisAlignment.start,
                                children: [
                                  _Label(AppLocalizations.of(context).translate('label_phone')),
                                  Row(
                                    children: [
                                      Container(
+                                      height: 50, // Fixed height to match TextField default
                                       padding: const EdgeInsets.symmetric(horizontal: 8),
                                       decoration: BoxDecoration(
                                         color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
                                         borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), bottomLeft: Radius.circular(12)),
                                       ),
-                                      child: DropdownButton<String>(
-                                        value: _selectedCountryCode,
-                                        underline: const SizedBox(),
-                                        menuMaxHeight: 300,
-                                        items: CountryCodes.list.map((c) => DropdownMenuItem(
-                                          value: c.code, 
-                                          child: Text('${c.flag} ${c.code}')
-                                        )).toList(),
-                                        onChanged: (val) {
-                                           if (val != null) setState(() => _selectedCountryCode = val);
-                                        },
+                                      child: DropdownButtonHideUnderline(
+                                        child: DropdownButton<String>(
+                                          value: _selectedCountryCode,
+                                          menuMaxHeight: 300,
+                                          items: CountryCodes.list.map((c) => DropdownMenuItem(
+                                            value: c.code, 
+                                            child: Text('${c.flag} ${c.code}', style: const TextStyle(fontSize: 14))
+                                          )).toList(),
+                                          onChanged: (val) {
+                                             if (val != null) setState(() => _selectedCountryCode = val);
+                                          },
+                                        ),
                                       ),
                                     ),
                                     const SizedBox(width: 4),
@@ -402,6 +404,7 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
                                         style: theme.textTheme.bodyMedium,
                                         keyboardType: TextInputType.phone,
                                         decoration: _inputDecoration(context, '123456...', icon: null).copyWith(
+                                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16), // Increased padding
                                           border: OutlineInputBorder(
                                             borderRadius: const BorderRadius.only(topRight: Radius.circular(12), bottomRight: Radius.circular(12)),
                                             borderSide: BorderSide.none,
@@ -413,10 +416,8 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
                                  ),
                                ],
                              ),
-                          ),
-                          const SizedBox(width: 12),
-                           Expanded(
-                             child: Column(
+                          const SizedBox(height: 16),
+                             Column(
                                crossAxisAlignment: CrossAxisAlignment.start,
                                children: [
                                  _Label(AppLocalizations.of(context).translate('label_email')),
@@ -424,11 +425,12 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
                                   controller: _clientEmailController,
                                   style: theme.textTheme.bodyMedium,
                                   keyboardType: TextInputType.emailAddress,
-                                  decoration: _inputDecoration(context, 'Email', icon: Icons.email),
+                                  decoration: _inputDecoration(context, 'Email', icon: Icons.email).copyWith(
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                  ),
                                 ),
                                ],
                              ),
-                          ),
                         ],
                       ),
                       const SizedBox(height: 16),

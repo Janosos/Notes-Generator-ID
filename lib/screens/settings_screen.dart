@@ -36,7 +36,7 @@ class SettingsScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text('${loc.translate('version')} 3.5.0', style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                  Text('${loc.translate('version')} 3.5.1', style: const TextStyle(color: Colors.grey, fontSize: 14)),
                   const SizedBox(height: 4),
                   Text(loc.translate('developed_by'), style: const TextStyle(color: Colors.grey, fontSize: 12)),
                ],
