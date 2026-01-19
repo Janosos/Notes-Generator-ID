@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.5.2] - 2026-01-19
+### Mejoras en Archivos PDF
+- **Nombres de Archivo Dinámicos**: Los PDFs generados ahora tienen nombres descriptivos según el tipo y el idioma:
+    - **Español**: `cotizacion_FOLIO.pdf` o `nota_de_venta_FOLIO.pdf`
+    - **Inglés**: `quote_FOLIO.pdf` o `sales_note_FOLIO.pdf`
+
 ## [3.5.1] - 2026-01-19
 ### Interfaz de Usuario (Mobile)
 - **Diseño Mejorado**: Los campos de Teléfono y Correo en la creación de notas ahora se muestran apilados verticalmente para ofrecer mayor espacio y claridad en pantallas pequeñas.

@@ -96,16 +96,15 @@ class PdfPreviewScreen extends StatelessWidget {
                            final tempDir = await getTemporaryDirectory();
                            // Clean filename
                            String safeFolio = note.folio.replaceAll(RegExp(r'[^\w\s-]'), '');
-                           final file = File('${tempDir.path}/cotizacion_$safeFolio.pdf');
+                           final loc = AppLocalizations.of(context);
+                           String prefix = note.type == 'VENTA' ? loc.translate('filename_sale') : loc.translate('filename_quote');
+                           
+                           final file = File('${tempDir.path}/${prefix}_$safeFolio.pdf');
                            await file.writeAsBytes(bytes);
                            
                            // Construct Message
-                           final loc = AppLocalizations.of(context);
                            final greeting = loc.translate('share_msg_greeting');
                            final typeName = note.type == 'VENTA' ? loc.translate('note_type_sale') : loc.translate('note_type_quote');
-                           // Format: "Hola [Client], aquí te comparto la [Tipo] [Folio] por un total de [Total]"
-                           // We need to support the placeholders manually since I didn't add a String formatter helper yet.
-                           // Simplest: Replace tokens.
                            String body = loc.translate('share_msg_body');
                            body = body.replaceFirst('%s', typeName);
                            body = body.replaceFirst('%s', note.folio);
@@ -138,7 +137,10 @@ class PdfPreviewScreen extends StatelessWidget {
                     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
                       // Desktop: "Save As" dialog
                       final fileName = XTypeGroup(label: 'PDF', extensions: ['pdf']);
-                      final FileSaveLocation? result = await getSaveLocation(suggestedName: 'cotizacion_${note.folio}.pdf', acceptedTypeGroups: [fileName]);
+                      final loc = AppLocalizations.of(context);
+                      String prefix = note.type == 'VENTA' ? loc.translate('filename_sale') : loc.translate('filename_quote');
+                      
+                      final FileSaveLocation? result = await getSaveLocation(suggestedName: '${prefix}_${note.folio}.pdf', acceptedTypeGroups: [fileName]);
                       
                       if (result != null) {
                          final file = File(result.path);

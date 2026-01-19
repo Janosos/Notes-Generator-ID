@@ -110,6 +110,8 @@ class AppLocalizations {
       'whatsapp_error_no_phone': 'No se agregó número telefónico del cliente',
       'edit_client': 'Editar Cliente',
       'client_details_updated': 'Detalles del cliente actualizados',
+      'filename_quote': 'cotizacion',
+      'filename_sale': 'nota_de_venta',
     },
     'en': {
       'app_title': 'IMPERIODEV',
@@ -211,6 +213,8 @@ class AppLocalizations {
       'whatsapp_error_no_phone': 'Client phone number missing',
       'edit_client': 'Edit Client',
       'client_details_updated': 'Client details updated',
+      'filename_quote': 'quote',
+      'filename_sale': 'sales_note',
     },
   };
 
