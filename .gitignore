@@ -45,3 +45,4 @@ app.*.map.json
 /android/app/release
 *.apk
 *.zip
+!Notes_V3.5.2_Web.zip
