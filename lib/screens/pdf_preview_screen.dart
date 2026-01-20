@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:printing/printing.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -88,20 +89,17 @@ class PdfPreviewScreen extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Expanded(
+                  Expanded(
                       child: ElevatedButton.icon(
                         onPressed: () async {
                            // Trigger native share of the PDF using Share Plus
                            final bytes = await PdfService().generateNotePdf(note, AppLocalizations.of(context).locale.languageCode);
-                           final tempDir = await getTemporaryDirectory();
-                           // Clean filename
-                           String safeFolio = note.folio.replaceAll(RegExp(r'[^\w\s-]'), '');
+                           
                            final loc = AppLocalizations.of(context);
+                           String safeFolio = note.folio.replaceAll(RegExp(r'[^\w\s-]'), '');
                            String prefix = note.type == 'VENTA' ? loc.translate('filename_sale') : loc.translate('filename_quote');
-                           
-                           final file = File('${tempDir.path}/${prefix}_$safeFolio.pdf');
-                           await file.writeAsBytes(bytes);
-                           
+                           final fileName = '${prefix}_$safeFolio.pdf';
+
                            // Construct Message
                            final greeting = loc.translate('share_msg_greeting');
                            final typeName = note.type == 'VENTA' ? loc.translate('note_type_sale') : loc.translate('note_type_quote');
@@ -109,10 +107,26 @@ class PdfPreviewScreen extends StatelessWidget {
                            body = body.replaceFirst('%s', typeName);
                            body = body.replaceFirst('%s', note.folio);
                            body = body.replaceFirst('%s', '\$${note.totalAmount.toStringAsFixed(2)}');
-                           
                            final fullMessage = '$greeting ${note.clientName},\n$body';
-                           
-                           await Share.shareXFiles([XFile(file.path)], text: fullMessage);
+
+                           if (kIsWeb) {
+                             // Web Share
+                             final xFile = XFile.fromData(bytes, name: fileName, mimeType: 'application/pdf');
+                             // note: shareXFiles on web might not support text + files well on all platforms, 
+                             // but we try best effort or fallback to sharing just text if file fails (though API allows both)
+                             try {
+                               await Share.shareXFiles([xFile], text: fullMessage);
+                             } catch (e) {
+                               // Fallback if file sharing fails on this browser
+                               await Share.share(fullMessage);
+                             }
+                           } else {
+                              // Mobile/Desktop
+                              final tempDir = await getTemporaryDirectory();
+                              final file = File('${tempDir.path}/$fileName');
+                              await file.writeAsBytes(bytes);
+                              await Share.shareXFiles([XFile(file.path)], text: fullMessage);
+                           }
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: theme.colorScheme.primary,
@@ -134,7 +148,10 @@ class PdfPreviewScreen extends StatelessWidget {
                     // Trigger print/save
                     final bytes = await PdfService().generateNotePdf(note, AppLocalizations.of(context).locale.languageCode);
                     
-                    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+                    if (kIsWeb) {
+                      // Web: Opens browser print preview which allows saving as PDF
+                      await Printing.layoutPdf(onLayout: (_) => bytes);
+                    } else if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
                       // Desktop: "Save As" dialog
                       final fileName = XTypeGroup(label: 'PDF', extensions: ['pdf']);
                       final loc = AppLocalizations.of(context);

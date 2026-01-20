@@ -228,6 +228,7 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
+      resizeToAvoidBottomInset: true, // Explicitly handle keyboard resizing
       // Sticky Header
       appBar: AppBar(
         title: Row(
@@ -261,7 +262,7 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
       body: Stack(
         children: [
           SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 100), // Bottom padding for footer
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 120), // Increased bottom padding ensuring space over footer
             child: Form(
               key: _formKey,
               child: Column(
