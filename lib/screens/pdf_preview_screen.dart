@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import '../models/note_model.dart';
 import '../services/pdf_service.dart';
 import '../utils/localization.dart';
+import '../utils/download_helper.dart';
 
 class PdfPreviewScreen extends StatelessWidget {
   final Note note;
@@ -148,16 +149,21 @@ class PdfPreviewScreen extends StatelessWidget {
                     // Trigger print/save
                     final bytes = await PdfService().generateNotePdf(note, AppLocalizations.of(context).locale.languageCode);
                     
+                    final loc = AppLocalizations.of(context);
+                    String prefix = note.type == 'VENTA' ? loc.translate('filename_sale') : loc.translate('filename_quote');
+                    final fileName = '${prefix}_${note.folio}.pdf';
+
                     if (kIsWeb) {
-                      // Web: Opens browser print preview which allows saving as PDF
-                      await Printing.layoutPdf(onLayout: (_) => bytes);
+                      // Web: Direct download
+                      downloadFile(bytes, fileName);
+                      if (context.mounted) {
+                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${AppLocalizations.of(context).translate('saved_to')} Downloads')));
+                      }
                     } else if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
                       // Desktop: "Save As" dialog
-                      final fileName = XTypeGroup(label: 'PDF', extensions: ['pdf']);
-                      final loc = AppLocalizations.of(context);
-                      String prefix = note.type == 'VENTA' ? loc.translate('filename_sale') : loc.translate('filename_quote');
+                      final xType = XTypeGroup(label: 'PDF', extensions: ['pdf']);
                       
-                      final FileSaveLocation? result = await getSaveLocation(suggestedName: '${prefix}_${note.folio}.pdf', acceptedTypeGroups: [fileName]);
+                      final FileSaveLocation? result = await getSaveLocation(suggestedName: fileName, acceptedTypeGroups: [xType]);
                       
                       if (result != null) {
                          final file = File(result.path);
