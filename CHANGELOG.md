@@ -3,6 +3,8 @@
 ## [3.6.1] - 2026-01-23
 ### Mejoras en PDF y Web
 - **Layout PDF**:
+    - Rediseño para output de Notas de venta.
+    - Ahora se muestra si un archivo es Cotización o Nota de venta.
     - Separación de correo y teléfono en líneas distintas con iconos dedicados.
     - Enlace funcional a `imperiodev.com` en el pie de página.
     - Se oculta la fila del teléfono si solo contiene el código de región.
