@@ -335,12 +335,20 @@ class PdfService {
                                         pw.Text(note.clientAddress, style: pw.TextStyle(color: slate600, fontSize: 10))
                                       ]),
                                    ],
-                                   if (note.clientPhone.isNotEmpty || note.clientEmail.isNotEmpty) ...[
+                                   if (note.clientPhone.split(' ').length > 1 && note.clientPhone.split(' ')[1].isNotEmpty) ...[
                                       pw.SizedBox(height: 4),
                                       pw.Row(children: [
-                                        pw.Icon(pw.IconData(0xe551), color: slate500, size: 11), // phone / contact
+                                        pw.Icon(pw.IconData(0xe0b0), color: slate500, size: 11), // phone
                                         pw.SizedBox(width: 4),
-                                        pw.Text('${note.clientPhone} ${note.clientEmail}', style: pw.TextStyle(color: slate600, fontSize: 10))
+                                        pw.Text(note.clientPhone, style: pw.TextStyle(color: slate600, fontSize: 10))
+                                      ]),
+                                   ],
+                                   if (note.clientEmail.isNotEmpty) ...[
+                                      pw.SizedBox(height: 4),
+                                      pw.Row(children: [
+                                        pw.Icon(pw.IconData(0xe158), color: slate500, size: 11), // email
+                                        pw.SizedBox(width: 4),
+                                        pw.Text(note.clientEmail, style: pw.TextStyle(color: slate600, fontSize: 10))
                                       ]),
                                    ]
                                  ]
@@ -370,7 +378,10 @@ class PdfService {
                                       children: [
                                         pw.Icon(pw.IconData(0xe894), color: slate500, size: 11), // language
                                         pw.SizedBox(width: 4),
-                                        pw.Text(labels['website']!, style: pw.TextStyle(color: slate600, fontSize: 10, decoration: pw.TextDecoration.underline))
+                                        pw.UrlLink(
+                                          child: pw.Text(labels['website']!, style: pw.TextStyle(color: slate600, fontSize: 10, decoration: pw.TextDecoration.underline)),
+                                          destination: 'https://www.imperiodev.com/',
+                                        )
                                       ]
                                    ),
                                  ]
@@ -465,7 +476,12 @@ class PdfService {
                                       children: [
                                         pw.Container(width: 6, height: 6, decoration: pw.BoxDecoration(color: primaryColor, shape: pw.BoxShape.circle)),
                                         pw.SizedBox(width: 6),
-                                        pw.Text(note.paymentMethod.isNotEmpty ? note.paymentMethod : 'No especificado', style: pw.TextStyle(color: slate600, fontSize: 10, fontWeight: pw.FontWeight.bold)),
+                                        pw.Text(
+                                          note.paymentMethod.isNotEmpty 
+                                            ? note.paymentMethod 
+                                            : (isEn ? 'Not specified' : 'No especificado'), 
+                                          style: pw.TextStyle(color: slate600, fontSize: 10, fontWeight: pw.FontWeight.bold)
+                                        ),
                                       ]
                                     ),
                                     pw.SizedBox(height: 12),

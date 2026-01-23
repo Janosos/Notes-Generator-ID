@@ -55,12 +55,12 @@ class _NotesListScreenState extends State<NotesListScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar Notas'),
-        content: Text('¿Estás seguro de eliminar ${_selectedNotes.length} notas seleccionadas?'),
+        title: Text(AppLocalizations.of(context).translate('delete_notes_title')),
+        content: Text(AppLocalizations.of(context).translate('delete_notes_msg').replaceAll('%s', _selectedNotes.length.toString())),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+            child: Text(AppLocalizations.of(context).translate('cancel')),
           ),
           TextButton(
             onPressed: () {
@@ -72,7 +72,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
               Navigator.pop(ctx);
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Eliminar'),
+            child: Text(AppLocalizations.of(context).translate('delete_note')),
           ),
         ],
       ),
@@ -88,7 +88,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
-          _isSelectionMode ? '${_selectedNotes.length} Seleccionadas' : AppLocalizations.of(context).translate('my_notes'),
+          _isSelectionMode ? AppLocalizations.of(context).translate('selected_count').replaceAll('%s', _selectedNotes.length.toString()) : AppLocalizations.of(context).translate('my_notes'),
           style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
         ),
         backgroundColor: theme.scaffoldBackgroundColor,
@@ -109,7 +109,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
                   
                   return IconButton(
                     icon: Icon(_selectedNotes.length == (widget.filterClientName != null ? 0 /* Too complex to check count here cheaply */ : allNotes.length) ? Icons.done_all : Icons.select_all),
-                    tooltip: 'Seleccionar Todas',
+                    tooltip: AppLocalizations.of(context).translate('tooltip_select_all'),
                     onPressed: () {
                       // We need the filtered list to select all pertinent notes.
                       // Since we can't easily access the filtered list here without refactoring, 
@@ -135,7 +135,7 @@ class _NotesListScreenState extends State<NotesListScreen> {
                   _selectedNotes.clear();
                 });
               },
-              tooltip: 'Seleccionar',
+              tooltip: AppLocalizations.of(context).translate('tooltip_select'),
             ),
           const SizedBox(width: 8),
         ],

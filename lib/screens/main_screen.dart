@@ -3,6 +3,7 @@ import 'dashboard_screen.dart';
 import 'notes_list_screen.dart';
 import 'clients_screen.dart';
 import 'settings_screen.dart';
+import '../utils/localization.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -46,26 +47,26 @@ class _MainScreenState extends State<MainScreen> {
           indicatorColor: theme.colorScheme.primary.withOpacity(0.2),
           elevation: 0,
           labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
-          destinations: const [
+          destinations: [
             NavigationDestination(
-              icon: Icon(Icons.dashboard_outlined),
-              selectedIcon: Icon(Icons.dashboard_rounded),
-              label: 'Inicio',
+              icon: const Icon(Icons.dashboard_outlined),
+              selectedIcon: const Icon(Icons.dashboard_rounded),
+              label: AppLocalizations.of(context).translate('home_title'),
             ),
             NavigationDestination(
-              icon: Icon(Icons.description_outlined),
-              selectedIcon: Icon(Icons.description_rounded),
-              label: 'Notas',
+              icon: const Icon(Icons.description_outlined),
+              selectedIcon: const Icon(Icons.description_rounded),
+              label: AppLocalizations.of(context).translate('notes_title'),
             ),
             NavigationDestination(
-              icon: Icon(Icons.people_outlined),
-              selectedIcon: Icon(Icons.people_rounded),
-              label: 'Clientes',
+              icon: const Icon(Icons.people_outlined),
+              selectedIcon: const Icon(Icons.people_rounded),
+              label: AppLocalizations.of(context).translate('client_title'),
             ),
             NavigationDestination(
-              icon: Icon(Icons.settings_outlined),
-              selectedIcon: Icon(Icons.settings_rounded),
-              label: 'Ajustes',
+              icon: const Icon(Icons.settings_outlined),
+              selectedIcon: const Icon(Icons.settings_rounded),
+              label: AppLocalizations.of(context).translate('settings_title'),
             ),
           ],
         ),

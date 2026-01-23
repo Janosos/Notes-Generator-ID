@@ -114,6 +114,11 @@ class AppLocalizations {
       'filename_sale': 'nota_de_venta',
       'label_payment_method': 'Método de Pago',
       'hint_payment_method': 'Ej. Transferencia Interbancaria',
+      'selected_count': '%s Seleccionadas',
+      'tooltip_select_all': 'Seleccionar Todas',
+      'tooltip_select': 'Seleccionar',
+      'delete_notes_title': 'Eliminar Notas',
+      'delete_notes_msg': '¿Estás seguro de eliminar %s notas seleccionadas?',
     },
     'en': {
       'app_title': 'IMPERIODEV',
@@ -219,6 +224,11 @@ class AppLocalizations {
       'filename_sale': 'sales_note',
       'label_payment_method': 'Payment Method',
       'hint_payment_method': 'Ex. Bank Transfer',
+      'selected_count': '%s Selected',
+      'tooltip_select_all': 'Select All',
+      'tooltip_select': 'Select',
+      'delete_notes_title': 'Delete Notes',
+      'delete_notes_msg': 'Are you sure you want to delete %s selected notes?',
     },
   };
 

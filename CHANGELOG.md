@@ -1,5 +1,21 @@
 # Changelog
 
+## [3.6.1] - 2026-01-23
+### Mejoras en PDF y Web
+- **Layout PDF**:
+    - Separación de correo y teléfono en líneas distintas con iconos dedicados.
+    - Enlace funcional a `imperiodev.com` en el pie de página.
+    - Se oculta la fila del teléfono si solo contiene el código de región.
+    - Texto "No especificado" localizado para métodos de pago vacíos.
+- **Compatibilidad iOS Web**: Solución al problema de nombres de archivo "unknown.pdf" en Safari (iOS) especificando el MIME type correcto.
+
+### Localización
+- **Nuevas Traducciones**:
+    - Tooltips de botones "Seleccionar" y "Seleccionar Todas".
+    - Título y mensaje del diálogo de confirmación de eliminación de notas.
+    - Barra de navegación inferior (Inicio, Notas, Clientes, Ajustes).
+    - Contador de selección en la lista de notas.
+
 ## [3.5.2] - 2026-01-19
 ### Mejoras en Archivos PDF
 - **Nombres de Archivo Dinámicos**: Los PDFs generados ahora tienen nombres descriptivos según el tipo y el idioma:
