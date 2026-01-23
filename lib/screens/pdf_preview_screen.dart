@@ -173,8 +173,11 @@ class PdfPreviewScreen extends StatelessWidget {
                          }
                       }
                     } else {
-                       // Mobile: Native Print/Share sheet which allows saving
-                       await Printing.layoutPdf(onLayout: (_) => bytes);
+                       // Mobile: Save via Share Sheet (simulates Save to Files)
+                       final tempDir = await getTemporaryDirectory();
+                       final file = File('${tempDir.path}/$fileName');
+                       await file.writeAsBytes(bytes);
+                       await Share.shareXFiles([XFile(file.path)]);
                     }
                   },
                   icon: const Icon(Icons.download, size: 20, color: Colors.grey),

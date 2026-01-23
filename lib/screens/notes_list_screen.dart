@@ -350,6 +350,11 @@ class _NoteListCard extends StatelessWidget {
                          context,
                          MaterialPageRoute(builder: (context) => CreateNoteScreen(noteToEdit: note)),
                        );
+                     } else if (value == 'create_sale') {
+                       Navigator.push(
+                         context,
+                         MaterialPageRoute(builder: (context) => CreateNoteScreen(templateNote: note)),
+                       );
                      }
                   },
                   itemBuilder: (context) => [
@@ -361,6 +366,17 @@ class _NoteListCard extends StatelessWidget {
                             const Icon(Icons.picture_as_pdf, color: Colors.blue, size: 20),
                             const SizedBox(width: 8),
                             Text(loc.translate('menu_view_pdf')),
+                          ],
+                        ),
+                      ),
+                    if (note.type == 'COTIZACION')
+                       PopupMenuItem(
+                        value: 'create_sale',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.shopping_bag_outlined, color: Colors.teal, size: 20),
+                            const SizedBox(width: 8),
+                            Text(loc.translate('menu_create_sale')),
                           ],
                         ),
                       ),

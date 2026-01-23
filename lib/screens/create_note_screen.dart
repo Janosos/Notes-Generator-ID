@@ -10,7 +10,9 @@ import 'pdf_preview_screen.dart';
 class CreateNoteScreen extends StatefulWidget {
   final Note? noteToEdit;
   final Client? clientToUse;
-  const CreateNoteScreen({super.key, this.noteToEdit, this.clientToUse});
+  final Note? templateNote;
+
+  const CreateNoteScreen({super.key, this.noteToEdit, this.clientToUse, this.templateNote});
 
   @override
   State<CreateNoteScreen> createState() => _CreateNoteScreenState();
@@ -43,13 +45,45 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
     } else {
       _generateFolio();
       if (widget.clientToUse != null) {
-        _clientNameController.text = widget.clientToUse!.name; // Restored Name initialization
+        _clientNameController.text = widget.clientToUse!.name;
         _clientEmailController.text = widget.clientToUse!.email;
         _clientPhoneController.text = widget.clientToUse!.phone; 
-        _selectedCountryCode = widget.clientToUse!.countryCode; // Use Client's code
+        _selectedCountryCode = widget.clientToUse!.countryCode; 
         _clientAddressController.text = widget.clientToUse!.address;
+      } else if (widget.templateNote != null) {
+        // Create Sale from Quote Logic
+        _loadTemplateData(widget.templateNote!);
       }
     }
+  }
+
+  void _loadTemplateData(Note note) {
+    _clientNameController.text = note.clientName;
+    _clientEmailController.text = note.clientEmail;
+    // Extract country code if possible, simple logic
+    // We assume the phone field contains the full string.
+    // If we wanted to split it, we'd need robust logic. For now, just copy.
+    // Actually, let's try to match existing logic if possible.
+    // But since phone is stored as one string, we'll just put it in phone controller
+    // and try to strip the country code if it matches our default?
+    // Let's keep it simple: Copy visible fields.
+    
+    // Note: The phone field in UI is split "Code" + "Number". 
+    // Stored `clientPhone` is "Code Number".
+    final parts = note.clientPhone.split(' ');
+    if (parts.length > 1) {
+       _selectedCountryCode = parts[0];
+       _clientPhoneController.text = note.clientPhone.substring(parts[0].length).trim();
+    } else {
+       _clientPhoneController.text = note.clientPhone;
+    }
+
+    _clientAddressController.text = note.clientAddress;
+    _paymentMethodController.text = note.paymentMethod;
+    
+    _noteType = 'VENTA'; // Force to Sale
+    _items.addAll(note.items);
+    _additionalNotesController.text = note.additionalNotes;
   }
 
   void _loadNoteData(Note note) {

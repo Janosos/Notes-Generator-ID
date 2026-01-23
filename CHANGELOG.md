@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.6.2] - 2026-01-23
+### Nuevas Funcionalidades
+- **Crear Venta desde Cotización**:
+    - Nueva opción en el menú de cotizaciones ("Crear Venta") que genera una Nota de Venta nueva rellenada automáticamente con los datos de la cotización.
+    - Disponible tanto en la lista principal de Notas como en la sección de "Notas Recientes" del Dashboard.
+- **Mejora en Guardado (Android)**:
+    - El botón "Guardar en Dispositivo" ahora abre la hoja nativa de compartir (Share Sheet) en lugar del diálogo de impresión. Esto facilita guardar el archivo en "Archivos", "Drive", etc.
+
+### Correcciones
+- **Iconos PDF (Android)**: Solucionado el problema donde los iconos aparecían como "X" en el PDF generado (se añadió permiso de INTERNET para cargar fuentes si es necesario).
+- **Fechas en Cotizaciones**: La fecha en el PDF de cotización ahora respeta el idioma seleccionado (ej. "23 ene, 2026").
+- **Estabilidad**: Corregido un error de compilación en Windows relacionado con métodos faltantes.
+
 ## [3.6.1] - 2026-01-23
 ### Mejoras en PDF y Web
 - **Layout PDF**:

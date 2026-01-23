@@ -86,7 +86,7 @@ class PdfService {
                              pw.SizedBox(height: 4),
                              pw.Text(note.folio, style: pw.TextStyle(color: textDark, fontSize: 12, fontWeight: pw.FontWeight.bold)),
                              pw.SizedBox(height: 2),
-                             pw.Text(DateFormat('dd MMM, yyyy').format(note.date), style: pw.TextStyle(color: textGrey, fontSize: 10)),
+                             pw.Text(DateFormat('dd MMM, yyyy', isEn ? 'en_US' : 'es_MX').format(note.date), style: pw.TextStyle(color: textGrey, fontSize: 10)),
                            ],
                          ),
                          pw.Column(

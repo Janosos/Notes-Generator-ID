@@ -119,6 +119,7 @@ class AppLocalizations {
       'tooltip_select': 'Seleccionar',
       'delete_notes_title': 'Eliminar Notas',
       'delete_notes_msg': '¿Estás seguro de eliminar %s notas seleccionadas?',
+      'menu_create_sale': 'Crear Venta',
     },
     'en': {
       'app_title': 'IMPERIODEV',
@@ -229,6 +230,7 @@ class AppLocalizations {
       'tooltip_select': 'Select',
       'delete_notes_title': 'Delete Notes',
       'delete_notes_msg': 'Are you sure you want to delete %s selected notes?',
+      'menu_create_sale': 'Create Sale',
     },
   };
 
