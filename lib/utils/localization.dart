@@ -112,6 +112,8 @@ class AppLocalizations {
       'client_details_updated': 'Detalles del cliente actualizados',
       'filename_quote': 'cotizacion',
       'filename_sale': 'nota_de_venta',
+      'label_payment_method': 'Método de Pago',
+      'hint_payment_method': 'Ej. Transferencia Interbancaria',
     },
     'en': {
       'app_title': 'IMPERIODEV',
@@ -215,6 +217,8 @@ class AppLocalizations {
       'client_details_updated': 'Client details updated',
       'filename_quote': 'quote',
       'filename_sale': 'sales_note',
+      'label_payment_method': 'Payment Method',
+      'hint_payment_method': 'Ex. Bank Transfer',
     },
   };
 

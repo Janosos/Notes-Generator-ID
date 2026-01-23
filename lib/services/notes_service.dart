@@ -52,7 +52,9 @@ class NotesService {
   }
 
   double get totalSales {
-    return notes.where((n) => n.status != 'BORRADOR').fold(0.0, (sum, note) => sum + note.totalAmount);
+    return notes
+        .where((n) => n.status != 'BORRADOR' && n.type == 'VENTA')
+        .fold(0.0, (sum, note) => sum + note.totalAmount);
   }
 
   int get notesCount => notes.length;

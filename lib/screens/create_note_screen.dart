@@ -24,6 +24,7 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
   final _clientEmailController = TextEditingController(); 
   final _clientPhoneController = TextEditingController();
   final _clientAddressController = TextEditingController(); 
+  final _paymentMethodController = TextEditingController(); 
   
   // Date & Folio
   DateTime _selectedDate = DateTime.now();
@@ -83,6 +84,7 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
     _folio = note.folio;
     _addVat = note.addVat;
     _additionalNotesController.text = note.additionalNotes ?? '';
+    _paymentMethodController.text = note.paymentMethod;
     // Load Items - Deep copy to avoid modifying original info until saved
     _items.addAll(note.items.map((item) => NoteItem(
       description: item.description,
@@ -117,6 +119,7 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
     _clientEmailController.dispose();
     _clientPhoneController.dispose();
     _clientAddressController.dispose();
+    _paymentMethodController.dispose();
     _additionalNotesController.dispose();
     super.dispose();
   }
@@ -161,6 +164,7 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
         folio: _folio,
         addVat: _addVat,
         additionalNotes: _additionalNotesController.text,
+        paymentMethod: _paymentMethodController.text,
       );
       
       if (_isEditing) {
@@ -197,6 +201,7 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
         folio: _folio,
         addVat: _addVat,
         additionalNotes: _additionalNotesController.text,
+        paymentMethod: _paymentMethodController.text,
       );
 
       // Save as Completed
@@ -441,6 +446,16 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
                         style: theme.textTheme.bodyMedium,
                         decoration: _inputDecoration(context, 'Dirección', icon: Icons.location_on),
                       ),
+
+                       if (_noteType == 'VENTA') ...[
+                          const SizedBox(height: 16),
+                          _Label(AppLocalizations.of(context).translate('label_payment_method')),
+                          TextFormField(
+                            controller: _paymentMethodController,
+                            style: theme.textTheme.bodyMedium,
+                            decoration: _inputDecoration(context, AppLocalizations.of(context).translate('hint_payment_method'), icon: Icons.payment),
+                          ),
+                        ],
                     ],
                   ),
 

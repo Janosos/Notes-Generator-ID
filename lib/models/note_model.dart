@@ -40,6 +40,7 @@ class Note {
   String type; // 'COTIZACION' or 'VENTA'
   String clientPhone;
   String clientEmail;
+  String paymentMethod;
 
   Note({
     required this.clientName,
@@ -53,6 +54,7 @@ class Note {
     this.type = 'COTIZACION',
     this.clientPhone = '',
     this.clientEmail = '',
+    this.paymentMethod = '',
   });
 
   double get subtotal => items.fold(0, (sum, item) => sum + item.total);
@@ -72,6 +74,7 @@ class Note {
       'type': type,
       'clientPhone': clientPhone,
       'clientEmail': clientEmail,
+      'paymentMethod': paymentMethod,
     };
   }
 
@@ -88,6 +91,7 @@ class Note {
       type: json['type'] ?? 'COTIZACION',
       clientPhone: json['clientPhone'] ?? '',
       clientEmail: json['clientEmail'] ?? '',
+      paymentMethod: json['paymentMethod'] ?? '',
     );
   }
 }

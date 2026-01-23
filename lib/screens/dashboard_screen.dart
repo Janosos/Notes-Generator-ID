@@ -461,6 +461,29 @@ class _NoteCard extends StatelessWidget {
                     color: Colors.grey,
                   ),
                 ),
+                const SizedBox(height: 4), // Small spacing
+                // Type Indicator
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: note.type == 'VENTA' ? Colors.purple.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(
+                      color: note.type == 'VENTA' ? Colors.purple.withOpacity(0.3) : Colors.orange.withOpacity(0.3),
+                      width: 0.5
+                    ),
+                  ),
+                  child: Text(
+                    note.type == 'VENTA' 
+                        ? (loc.translate('note_type_sale').toUpperCase()) 
+                        : (loc.translate('note_type_quote').toUpperCase()),
+                    style: TextStyle(
+                      fontSize: 9, 
+                      fontWeight: FontWeight.bold,
+                      color: note.type == 'VENTA' ? Colors.purple : Colors.orange[800],
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
