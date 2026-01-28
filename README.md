@@ -27,6 +27,8 @@ La aplicacion permite generar documentos PDF profesionales y estandarizados, lis
 *   **Soporte Multiplataforma**:
     *   Windows (Escritorio).
     *   Android (APK optimizado).
+    *   MacOS (Intel).
+    *   Web.
 
 ## Tecnologias Utilizadas
 
