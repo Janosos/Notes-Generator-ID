@@ -21,13 +21,13 @@ class PdfService {
     if (note.type == 'VENTA') {
       _buildSaleNoteLayout(pdf, note, font, fontBold, iconFont, isEn);
     } else {
-      _buildQuoteLayout(pdf, note, font, fontBold, isEn);
+      _buildQuoteLayout(pdf, note, font, fontBold, iconFont, isEn);
     }
 
     return pdf.save();
   }
 
-  void _buildQuoteLayout(pw.Document pdf, Note note, pw.Font font, pw.Font fontBold, bool isEn) {
+  void _buildQuoteLayout(pw.Document pdf, Note note, pw.Font font, pw.Font fontBold, pw.Font iconFont, bool isEn) {
     // ... [Existing Quote Logic - Kept distinct] ...
     final labels = {
       'quote': isEn ? 'QUOTE' : 'COTIZACIÓN',
@@ -62,6 +62,7 @@ class PdfService {
         theme: pw.ThemeData.withFont(
           base: font,
           bold: fontBold,
+          icons: iconFont,
         ),
         build: (context) {
           return pw.Stack(
@@ -112,8 +113,30 @@ class PdfService {
                            pw.Text(labels['prepared_for']!, style: pw.TextStyle(color: PdfColors.grey400, fontSize: 9, fontWeight: pw.FontWeight.bold)),
                            pw.SizedBox(height: 4),
                            pw.Text(note.clientName, style: pw.TextStyle(color: textDark, fontSize: 16, fontWeight: pw.FontWeight.bold)),
-                           if (note.clientAddress.isNotEmpty) ...[pw.SizedBox(height: 2), pw.Text(note.clientAddress, style: pw.TextStyle(color: textGrey, fontSize: 10))],
-                           if (note.clientPhone.isNotEmpty || note.clientEmail.isNotEmpty) ...[pw.SizedBox(height: 2), pw.Text('${note.clientPhone} ${note.clientEmail}', style: pw.TextStyle(color: textGrey, fontSize: 10))],
+                           if (note.clientAddress.isNotEmpty) ...[
+                              pw.SizedBox(height: 2), 
+                              pw.Row(children: [
+                                pw.Icon(pw.IconData(0xe0c8), color: textGrey, size: 10), // location_on
+                                pw.SizedBox(width: 4),
+                                pw.Text(note.clientAddress, style: pw.TextStyle(color: textGrey, fontSize: 10))
+                              ])
+                           ],
+                           if (note.clientPhone.isNotEmpty) ...[
+                              pw.SizedBox(height: 2), 
+                              pw.Row(children: [
+                                pw.Icon(pw.IconData(0xe0b0), color: textGrey, size: 10), // phone
+                                pw.SizedBox(width: 4),
+                                pw.Text(note.clientPhone, style: pw.TextStyle(color: textGrey, fontSize: 10))
+                              ])
+                           ],
+                           if (note.clientEmail.isNotEmpty) ...[
+                              pw.SizedBox(height: 2),
+                              pw.Row(children: [
+                                pw.Icon(pw.IconData(0xe158), color: textGrey, size: 10), // email
+                                pw.SizedBox(width: 4),
+                                pw.Text(note.clientEmail, style: pw.TextStyle(color: textGrey, fontSize: 10))
+                              ])
+                           ],
                        ]),
                      ),
                      pw.SizedBox(height: 35),
