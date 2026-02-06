@@ -92,43 +92,53 @@ class PdfPreviewScreen extends StatelessWidget {
                   children: [
                   Expanded(
                       child: ElevatedButton.icon(
-                        onPressed: () async {
-                           // Trigger native share of the PDF using Share Plus
-                           final bytes = await PdfService().generateNotePdf(note, AppLocalizations.of(context).locale.languageCode);
-                           
-                           final loc = AppLocalizations.of(context);
-                           String safeFolio = note.folio.replaceAll(RegExp(r'[^\w\s-]'), '');
-                           String prefix = note.type == 'VENTA' ? loc.translate('filename_sale') : loc.translate('filename_quote');
-                           final fileName = '${prefix}_$safeFolio.pdf';
+                         onPressed: () async {
+                            try {
+                               // Trigger native share of the PDF using Share Plus
+                               final bytes = await PdfService().generateNotePdf(note, AppLocalizations.of(context).locale.languageCode);
+                               
+                               final loc = AppLocalizations.of(context);
+                               String safeFolio = note.folio.replaceAll(RegExp(r'[^\w\s-]'), '');
+                               String prefix = note.type == 'VENTA' ? loc.translate('filename_sale') : loc.translate('filename_quote');
+                               final fileName = '${prefix}_$safeFolio.pdf';
 
-                           // Construct Message
-                           final greeting = loc.translate('share_msg_greeting');
-                           final typeName = note.type == 'VENTA' ? loc.translate('note_type_sale') : loc.translate('note_type_quote');
-                           String body = loc.translate('share_msg_body');
-                           body = body.replaceFirst('%s', typeName);
-                           body = body.replaceFirst('%s', note.folio);
-                           body = body.replaceFirst('%s', '\$${note.totalAmount.toStringAsFixed(2)}');
-                           final fullMessage = '$greeting ${note.clientName},\n$body';
+                               // Construct Message
+                               final greeting = loc.translate('share_msg_greeting');
+                               final typeName = note.type == 'VENTA' ? loc.translate('note_type_sale') : loc.translate('note_type_quote');
+                               String body = loc.translate('share_msg_body');
+                               body = body.replaceFirst('%s', typeName);
+                               body = body.replaceFirst('%s', note.folio);
+                               body = body.replaceFirst('%s', '\$${note.totalAmount.toStringAsFixed(2)}');
+                               final fullMessage = '$greeting ${note.clientName},\n$body';
 
-                           if (kIsWeb) {
-                             // Web Share
-                             final xFile = XFile.fromData(bytes, name: fileName, mimeType: 'application/pdf');
-                             // note: shareXFiles on web might not support text + files well on all platforms, 
-                             // but we try best effort or fallback to sharing just text if file fails (though API allows both)
-                             try {
-                               await Share.shareXFiles([xFile], text: fullMessage);
-                             } catch (e) {
-                               // Fallback if file sharing fails on this browser
-                               await Share.share(fullMessage);
-                             }
-                           } else {
-                              // Mobile/Desktop
-                              final tempDir = await getTemporaryDirectory();
-                              final file = File('${tempDir.path}/$fileName');
-                              await file.writeAsBytes(bytes);
-                              await Share.shareXFiles([XFile(file.path)], text: fullMessage);
-                           }
-                        },
+                               if (kIsWeb) {
+                                 // Web Share
+                                 final xFile = XFile.fromData(bytes, name: fileName, mimeType: 'application/pdf');
+                                 try {
+                                   await Share.shareXFiles([xFile], text: fullMessage);
+                                 } catch (e) {
+                                   await Share.share(fullMessage);
+                                 }
+                               } else {
+                                  // Mobile/Desktop
+                                  // Use Application Documents Directory for better persistence/access rights on some OSes
+                                  final docsDir = await getApplicationDocumentsDirectory();
+                                  final file = File('${docsDir.path}/$fileName');
+                                  await file.writeAsBytes(bytes);
+                                  
+                                  if (Platform.isMacOS) {
+                                    // macOS Share Sheet often prefers just the file without text to detect type correctly
+                                    await Share.shareXFiles([XFile(file.path)]);
+                                  } else {
+                                    await Share.shareXFiles([XFile(file.path)], text: fullMessage);
+                                  }
+                               }
+                            } catch (e) {
+                               ScaffoldMessenger.of(context).showSnackBar(
+                                 SnackBar(content: Text('Error sharing: $e'), backgroundColor: Colors.red)
+                               );
+                            }
+                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: theme.colorScheme.primary,
                           foregroundColor: Colors.white,
