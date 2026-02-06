@@ -66,10 +66,10 @@ class PdfService {
         build: (context) {
           return pw.Stack(
             children: [
-               pw.Positioned(
-                 top: 0, left: 0, right: 0, 
-                 child: pw.Container(height: 8, color: primaryColor)
-               ),
+              pw.Positioned(
+                  top: 0, left: 0, right: 0, 
+                  child: pw.Container(height: 8, color: primaryColor)
+                ),
                pw.Padding(
                  padding: const pw.EdgeInsets.fromLTRB(40, 48, 40, 40),
                  child: pw.Column(
@@ -231,6 +231,8 @@ class PdfService {
             children: [
               // Background
               pw.Container(color: slate50),
+
+
               
               pw.Column(
                 children: [

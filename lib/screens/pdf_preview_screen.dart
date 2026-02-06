@@ -177,6 +177,18 @@ class PdfPreviewScreen extends StatelessWidget {
                        final tempDir = await getTemporaryDirectory();
                        final file = File('${tempDir.path}/$fileName');
                        await file.writeAsBytes(bytes);
+                       
+                       if (context.mounted) {
+                         ScaffoldMessenger.of(context).showSnackBar(
+                           SnackBar(
+                             content: Text(loc.locale.languageCode == 'en' 
+                               ? "Select 'Save to Files' or 'Drive' to save the PDF" 
+                               : "Selecciona 'Guardar en Archivos' o 'Drive' para guardar el PDF"),
+                             duration: const Duration(seconds: 4),
+                           )
+                         );
+                       }
+                       
                        await Share.shareXFiles([XFile(file.path)]);
                     }
                   },

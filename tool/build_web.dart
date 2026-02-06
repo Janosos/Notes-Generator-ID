@@ -63,7 +63,22 @@ if (!is_user_logged_in() || !current_user_can('administrator')) {
 </head>
 
 <body>
-  <script src="flutter_bootstrap.js" async></script>
+  <script src="flutter_bootstrap.js?v=${DateTime.now().millisecondsSinceEpoch}" async></script>
+  <script>
+    // FORCE CACHE CLEARING
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for(let registration of registrations) {
+          registration.unregister();
+          console.log('ServiceWorker unregistered');
+        }
+      });
+      caches.keys().then(function(names) {
+        for (let name of names) caches.delete(name);
+        console.log('Caches deleted');
+      });
+    }
+  </script>
 </body>
 
 </html>
@@ -78,5 +93,16 @@ if (!is_user_logged_in() || !current_user_can('administrator')) {
   final indexPhpFile = File('${buildDir.path}/index.php');
   indexPhpFile.writeAsStringSync(indexPhpContent);
   
-  print('Created index.php successfully at ${indexPhpFile.path}');
+  // Remove index.html to ensure index.php is served (avoiding priority issues)
+  final indexHtmlFile = File('${buildDir.path}/index.html');
+  if (indexHtmlFile.existsSync()) {
+    indexHtmlFile.deleteSync();
+    print('Removed index.html to ensure precedence of index.php');
+  }
+
+  // Create a version file for easy verification
+  final versionFile = File('${buildDir.path}/version.json');
+  versionFile.writeAsStringSync('{"version": "3.6.2", "build_time": "${DateTime.now().toIso8601String()}"}');
+  
+  print('Created index.php and version.json successfully.');
 }

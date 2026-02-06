@@ -82,6 +82,7 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
     _paymentMethodController.text = note.paymentMethod;
     
     _noteType = 'VENTA'; // Force to Sale
+    _generateFolio(); // Generate NEW folio for the sale
     _items.addAll(note.items);
     _additionalNotesController.text = note.additionalNotes;
   }
@@ -128,12 +129,13 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
   }
 
   void _generateFolio() {
-    // Generate Folio: #IMP-YYYY-NNN
-    final year = DateTime.now().year;
-    // Logic: Start at 001. 
-    // notesCount is current size. Next ID is notesCount + 1.
-    final count = NotesService().notesCount + 1; 
-    _folio = "#IMP-$year-${count.toString().padLeft(3, '0')}";
+    setState(() {
+       if (_noteType == 'VENTA') {
+         _folio = NotesService().getNextSaleFolio();
+       } else {
+         _folio = NotesService().getNextQuoteFolio();
+       }
+    });
   }
 
   // Items - Empty by default
@@ -329,7 +331,12 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
                                title: Text(AppLocalizations.of(context).translate('note_type_quote'), style: const TextStyle(fontSize: 14)),
                                value: 'COTIZACION', 
                                groupValue: _noteType, 
-                               onChanged: (v) => setState(() => _noteType = v!),
+                               onChanged: (v) {
+                                  setState(() {
+                                    _noteType = v!;
+                                    if (!_isEditing) _generateFolio();
+                                  });
+                               },
                                contentPadding: EdgeInsets.zero,
                                activeColor: theme.colorScheme.primary,
                              ),
@@ -339,7 +346,12 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
                                title: Text(AppLocalizations.of(context).translate('note_type_sale'), style: const TextStyle(fontSize: 14)),
                                value: 'VENTA', 
                                groupValue: _noteType, 
-                               onChanged: (v) => setState(() => _noteType = v!),
+                               onChanged: (v) {
+                                  setState(() {
+                                    _noteType = v!;
+                                    if (!_isEditing) _generateFolio();
+                                  });
+                               },
                                contentPadding: EdgeInsets.zero,
                                activeColor: theme.colorScheme.primary,
                              ),
@@ -809,7 +821,8 @@ class _ItemCardState extends State<_ItemCard> {
     super.initState();
     _descCtrl = TextEditingController(text: widget.item.description);
     _qtyCtrl = TextEditingController(text: widget.item.quantity.toString());
-    _priceCtrl = TextEditingController(text: widget.item.price.toStringAsFixed(0)); // Simplification: Integer input for demo
+    // Fix: Show empty string if price is 0 to show placeholder
+    _priceCtrl = TextEditingController(text: widget.item.price == 0 ? '' : widget.item.price.toStringAsFixed(0));
   }
   
   void _update() {
@@ -830,7 +843,7 @@ class _ItemCardState extends State<_ItemCard> {
   @override
   Widget build(BuildContext context) {
     final colorBg = widget.isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9);
-    final borderColor = Colors.transparent; // Hover effect could go here
+    final borderColor = Colors.transparent; 
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -841,25 +854,31 @@ class _ItemCardState extends State<_ItemCard> {
       ),
       child: Column(
         children: [
-          Stack(
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              TextField(
-                controller: _descCtrl,
-                onChanged: (_) => _update(),
-                decoration: InputDecoration(
-                  hintText: AppLocalizations.of(context).translate('hint_desc'),
-                  border: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
-                  enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black12)),
-                  contentPadding: EdgeInsets.zero,
-                  isDense: true,
+              Expanded(
+                child: TextField(
+                  controller: _descCtrl,
+                  onChanged: (_) => _update(),
+                  maxLines: 3, // Increased height
+                  minLines: 1,
+                  decoration: InputDecoration(
+                    hintText: AppLocalizations.of(context).translate('hint_desc'),
+                    border: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
+                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black12)),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                    isDense: true,
+                  ),
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
                 ),
-                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
               ),
-              Positioned(
-                right: 0,
-                top: -8,
-                child: InkWell(
-                  onTap: widget.onDelete,
+              const SizedBox(width: 8),
+              InkWell(
+                onTap: widget.onDelete,
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
                   child: const Icon(Icons.close, size: 20, color: Colors.redAccent),
                 ),
               )
@@ -907,6 +926,7 @@ class _ItemCardState extends State<_ItemCard> {
                         decoration: const InputDecoration(
                           prefixIcon: Icon(Icons.attach_money, size: 14, color: Colors.grey),
                           prefixIconConstraints: BoxConstraints(minWidth: 24, maxHeight: 24),
+                          hintText: '0', // Placeholder 0
                           border: InputBorder.none, 
                           isDense: true, 
                           contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),

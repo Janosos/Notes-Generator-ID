@@ -85,6 +85,40 @@ class NotesService {
     }
   }
 
+  // --- Folio Logic ---
+  
+  String getNextQuoteFolio() {
+    return _getNextFolio('IDC', 'COTIZACION');
+  }
+
+  String getNextSaleFolio() {
+    return _getNextFolio('IDN', 'VENTA');
+  }
+
+  String _getNextFolio(String prefix, String type) {
+    final year = DateTime.now().year;
+    // Filter notes of this type
+    final typeNotes = notes.where((n) => n.type == type).toList();
+    
+    // Find max sequence for current year
+    int maxSeq = 0;
+    for (var note in typeNotes) {
+      // Expected format: PRE-YYYY-NNN
+      final parts = note.folio.split('-');
+      if (parts.length == 3) {
+         final noteYear = int.tryParse(parts[1]);
+         final noteSeq = int.tryParse(parts[2]);
+         
+         if (noteYear == year && noteSeq != null) {
+           if (noteSeq > maxSeq) maxSeq = noteSeq;
+         }
+      }
+    }
+    
+    final nextSeq = maxSeq + 1;
+    return '$prefix-$year-${nextSeq.toString().padLeft(3, '0')}';
+  }
+
   Future<bool> exportAllNotesToZip(String languageCode) async {
     final completedNotes = notes.where((n) => n.status == 'COMPLETADA').toList();
     if (completedNotes.isEmpty) return false;

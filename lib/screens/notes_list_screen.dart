@@ -294,33 +294,40 @@ class _NoteListCard extends StatelessWidget {
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        Text(note.folio, style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey)),
-                        const SizedBox(width: 12),
-                        Text(DateFormat('dd/MM/yyyy').format(note.date), style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey)),
-                        const SizedBox(width: 8),
-                        // Type Indicator
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: note.type == 'VENTA' ? Colors.purple.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(
-                              color: note.type == 'VENTA' ? Colors.purple.withOpacity(0.3) : Colors.orange.withOpacity(0.3),
-                              width: 0.5
-                            ),
-                          ),
-                          child: Text(
-                            note.type == 'VENTA' 
-                                ? (loc.translate('note_type_sale').toUpperCase()) 
-                                : (loc.translate('note_type_quote').toUpperCase()),
-                            style: TextStyle(
-                              fontSize: 9, 
-                              fontWeight: FontWeight.bold,
-                              color: note.type == 'VENTA' ? Colors.purple : Colors.orange[800],
-                            ),
+                        Expanded(
+                          child: Wrap(
+                            spacing: 8,
+                            runSpacing: 4,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                               Text(note.folio, style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey)),
+                               Text(DateFormat('dd/MM/yyyy').format(note.date), style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey)),
+                               // Type Indicator
+                               Container(
+                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                 decoration: BoxDecoration(
+                                   color: note.type == 'VENTA' ? Colors.purple.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
+                                   borderRadius: BorderRadius.circular(4),
+                                   border: Border.all(
+                                     color: note.type == 'VENTA' ? Colors.purple.withOpacity(0.3) : Colors.orange.withOpacity(0.3),
+                                     width: 0.5
+                                   ),
+                                 ),
+                                 child: Text(
+                                   note.type == 'VENTA' 
+                                       ? (loc.translate('note_type_sale').toUpperCase()) 
+                                       : (loc.translate('note_type_quote').toUpperCase()),
+                                   style: TextStyle(
+                                     fontSize: 9, 
+                                     fontWeight: FontWeight.bold,
+                                     color: note.type == 'VENTA' ? Colors.purple : Colors.orange[800],
+                                   ),
+                                 ),
+                               ),
+                            ],
                           ),
                         ),
-                        const Spacer(),
+                        const SizedBox(width: 8),
                         Text(
                           '\$${note.totalAmount.toStringAsFixed(2)}',
                           style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.primary),
