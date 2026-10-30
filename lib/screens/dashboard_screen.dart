@@ -499,7 +499,7 @@ class _NoteCard extends StatelessWidget {
                      Row(
                       children: [
                         Text(
-                          '\$${note.totalAmount.toStringAsFixed(2)}',
+                          '\$${note.totalAmount.toStringAsFixed(2)} ${note.currency}',
                           style: theme.textTheme.titleMedium?.copyWith(
                              fontWeight: FontWeight.bold,
                           ),

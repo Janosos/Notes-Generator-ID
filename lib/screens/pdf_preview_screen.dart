@@ -108,7 +108,7 @@ class PdfPreviewScreen extends StatelessWidget {
                                String body = loc.translate('share_msg_body');
                                body = body.replaceFirst('%s', typeName);
                                body = body.replaceFirst('%s', note.folio);
-                               body = body.replaceFirst('%s', '\$${note.totalAmount.toStringAsFixed(2)}');
+                               body = body.replaceFirst('%s', '\$${note.totalAmount.toStringAsFixed(2)} ${note.currency}');
                                final fullMessage = '$greeting ${note.clientName},\n$body';
 
                                if (kIsWeb) {

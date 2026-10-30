@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../models/client_model.dart';
 import '../models/note_model.dart';
 import '../services/notes_service.dart';
+import '../services/settings_service.dart';
 import '../utils/localization.dart';
 import '../utils/country_codes.dart';
 import 'pdf_preview_screen.dart';
@@ -33,9 +35,21 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
   late String _folio; 
   String _noteType = 'COTIZACION'; // Default
   String _selectedCountryCode = '+52'; 
+  String _currency = 'MXN';
+  bool _currencyInitialized = false;
 
   // Check if we are editing
   bool get _isEditing => widget.noteToEdit != null;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_currencyInitialized) {
+      final settings = Provider.of<SettingsService>(context, listen: false);
+      _currency = widget.noteToEdit?.currency ?? settings.currency;
+      _currencyInitialized = true;
+    }
+  }
 
   @override
   void initState() {
@@ -85,6 +99,8 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
     _generateFolio(); // Generate NEW folio for the sale
     _items.addAll(note.items);
     _additionalNotesController.text = note.additionalNotes;
+    _currency = note.currency;
+    _currencyInitialized = true;
   }
 
   void _loadNoteData(Note note) {
@@ -118,8 +134,10 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
     _selectedDate = note.date;
     _folio = note.folio;
     _addVat = note.addVat;
-    _additionalNotesController.text = note.additionalNotes ?? '';
+    _additionalNotesController.text = note.additionalNotes;
     _paymentMethodController.text = note.paymentMethod;
+    _currency = note.currency;
+    _currencyInitialized = true;
     // Load Items - Deep copy to avoid modifying original info until saved
     _items.addAll(note.items.map((item) => NoteItem(
       description: item.description,
@@ -201,6 +219,7 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
         addVat: _addVat,
         additionalNotes: _additionalNotesController.text,
         paymentMethod: _paymentMethodController.text,
+        currency: _currency,
       );
       
       if (_isEditing) {
@@ -238,6 +257,7 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
         addVat: _addVat,
         additionalNotes: _additionalNotesController.text,
         paymentMethod: _paymentMethodController.text,
+        currency: _currency,
       );
 
       // Save as Completed
@@ -540,6 +560,7 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
                                 onDelete: () => _removeItem(i),
                                 onUpdate: () => setState(() {}),
                                 isDark: isDark,
+                                currency: _currency,
                               );
                             },
                           ),
@@ -574,8 +595,34 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
                   _SectionCard(
                     title: AppLocalizations.of(context).translate('section_summary'),
                     icon: Icons.receipt_long,
+                    trailing: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: theme.colorScheme.primary.withOpacity(0.2)),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _currency,
+                          isDense: true,
+                          style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold, fontSize: 12),
+                          items: const [
+                            DropdownMenuItem(value: 'MXN', child: Text('MXN')),
+                            DropdownMenuItem(value: 'USD', child: Text('USD')),
+                          ],
+                          onChanged: (val) {
+                            if (val != null) {
+                              setState(() {
+                                _currency = val;
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                    ),
                     children: [
-                      _SummaryRow(AppLocalizations.of(context).translate('subtotal'), _subtotal),
+                      _SummaryRow(AppLocalizations.of(context).translate('subtotal'), _subtotal, currency: _currency),
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8.0),
                         child: Row(
@@ -597,7 +644,7 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
                                 ),
                               ],
                             ),
-                            Text('\$${_vatAmount.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w600)),
+                            Text('\$${_vatAmount.toStringAsFixed(2)} $_currency', style: const TextStyle(fontWeight: FontWeight.w600)),
                           ],
                         ),
                       ),
@@ -612,7 +659,7 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
                              crossAxisAlignment: CrossAxisAlignment.end,
                              children: [
                                Text('\$${_total.toStringAsFixed(2)}', style: TextStyle(color: theme.colorScheme.primary, fontSize: 24, fontWeight: FontWeight.bold)),
-                               const Text('MXN', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                               Text(_currency, style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
                              ],
                            ),
                         ],
@@ -705,8 +752,9 @@ class _SectionCard extends StatelessWidget {
   final String title;
   final IconData icon;
   final List<Widget> children;
+  final Widget? trailing;
 
-  const _SectionCard({required this.title, required this.icon, required this.children});
+  const _SectionCard({required this.title, required this.icon, required this.children, this.trailing});
 
   @override
   Widget build(BuildContext context) {
@@ -723,7 +771,13 @@ class _SectionCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _SectionTitle(title, icon, Theme.of(context)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _SectionTitle(title, icon, Theme.of(context)),
+              if (trailing != null) trailing!,
+            ],
+          ),
           const SizedBox(height: 16),
           ...children,
         ],
@@ -775,7 +829,8 @@ class _Label extends StatelessWidget {
 class _SummaryRow extends StatelessWidget {
   final String label;
   final double amount;
-  const _SummaryRow(this.label, this.amount);
+  final String currency;
+  const _SummaryRow(this.label, this.amount, {this.currency = 'MXN'});
 
   @override
   Widget build(BuildContext context) {
@@ -786,7 +841,7 @@ class _SummaryRow extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontSize: 14)),
-          Text('\$${amount.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w600)),
+          Text('\$${amount.toStringAsFixed(2)} $currency', style: const TextStyle(fontWeight: FontWeight.w600)),
         ],
       ),
     );
@@ -798,6 +853,7 @@ class _ItemCard extends StatefulWidget {
   final VoidCallback onDelete;
   final VoidCallback onUpdate;
   final bool isDark;
+  final String currency;
 
   const _ItemCard({
     super.key,
@@ -805,6 +861,7 @@ class _ItemCard extends StatefulWidget {
     required this.onDelete,
     required this.onUpdate,
     required this.isDark,
+    required this.currency,
   });
 
   @override
@@ -914,7 +971,7 @@ class _ItemCardState extends State<_ItemCard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(AppLocalizations.of(context).translate('label_unit_price'), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+                    Text('${AppLocalizations.of(context).translate('label_unit_price')} (${widget.currency})', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
                     const SizedBox(height: 4),
                     Container(
                       decoration: BoxDecoration(color: Theme.of(context).cardTheme.color, borderRadius: BorderRadius.circular(6)),
@@ -923,13 +980,15 @@ class _ItemCardState extends State<_ItemCard> {
                         onChanged: (_) => _update(),
                         keyboardType: TextInputType.number,
                         textAlign: TextAlign.right,
-                        decoration: const InputDecoration(
-                          prefixIcon: Icon(Icons.attach_money, size: 14, color: Colors.grey),
-                          prefixIconConstraints: BoxConstraints(minWidth: 24, maxHeight: 24),
+                        decoration: InputDecoration(
+                          prefixIcon: const Icon(Icons.attach_money, size: 14, color: Colors.grey),
+                          prefixIconConstraints: const BoxConstraints(minWidth: 24, maxHeight: 24),
+                          suffixText: widget.currency,
+                          suffixStyle: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.w600),
                           hintText: '0', // Placeholder 0
                           border: InputBorder.none, 
                           isDense: true, 
-                          contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                          contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                         ),
                         style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
                       ),
@@ -942,9 +1001,9 @@ class _ItemCardState extends State<_ItemCard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    const Text('TOTAL', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+                    Text('TOTAL (${widget.currency})', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
                     const SizedBox(height: 12),
-                    Text('\$${widget.item.total.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                    Text('\$${widget.item.total.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                   ],
                 ),
               ),

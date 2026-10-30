@@ -4,12 +4,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 class SettingsService extends ChangeNotifier {
   static const _themeKey = 'theme_mode';
   static const _langKey = 'language_code';
+  static const _currencyKey = 'currency_code';
 
   ThemeMode _themeMode = ThemeMode.dark; // Default to Dark
   Locale _locale = const Locale('es');
+  String _currency = 'MXN';
 
   ThemeMode get themeMode => _themeMode;
   Locale get locale => _locale;
+  String get currency => _currency;
 
   SettingsService() {
     _loadSettings();
@@ -31,6 +34,12 @@ class SettingsService extends ChangeNotifier {
     if (langCode != null) {
       _locale = Locale(langCode);
     }
+
+    // Load Currency
+    final currencyCode = prefs.getString(_currencyKey);
+    if (currencyCode != null) {
+      _currency = currencyCode;
+    }
     
     notifyListeners();
   }
@@ -47,5 +56,12 @@ class SettingsService extends ChangeNotifier {
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_langKey, locale.languageCode);
+  }
+
+  Future<void> updateCurrency(String currency) async {
+    _currency = currency;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_currencyKey, currency);
   }
 }

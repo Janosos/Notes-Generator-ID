@@ -11,7 +11,6 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final settings = Provider.of<SettingsService>(context);
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final loc = AppLocalizations.of(context);
 
     return Scaffold(
@@ -36,7 +35,7 @@ class SettingsScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text('${loc.translate('version')} 3.6.3', style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                  Text('${loc.translate('version')} 3.7', style: const TextStyle(color: Colors.grey, fontSize: 14)),
                   const SizedBox(height: 4),
                   Text(loc.translate('developed_by'), style: const TextStyle(color: Colors.grey, fontSize: 12)),
                ],
@@ -81,6 +80,34 @@ class SettingsScreen extends StatelessWidget {
                    items: const [
                      DropdownMenuItem(value: 'es', child: Text('Español')),
                      DropdownMenuItem(value: 'en', child: Text('English')),
+                   ],
+                 ),
+               ),
+            ],
+          ),
+          
+          const SizedBox(height: 24),
+
+          // Currency
+          _SettingsSection(
+            title: loc.translate('currency_title'),
+            icon: Icons.payments_outlined,
+            children: [
+               ListTile(
+                 leading: Icon(Icons.payments_outlined, color: theme.colorScheme.primary),
+                 title: Text(loc.translate('currency_title')),
+                 subtitle: Text(loc.translate('currency_desc'), style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                 trailing: DropdownButton<String>(
+                   value: settings.currency,
+                   underline: const SizedBox(),
+                   onChanged: (String? val) {
+                     if (val != null) {
+                       settings.updateCurrency(val);
+                     }
+                   },
+                   items: const [
+                     DropdownMenuItem(value: 'MXN', child: Text('MXN (Pesos)')),
+                     DropdownMenuItem(value: 'USD', child: Text('USD (Dólares)')),
                    ],
                  ),
                ),

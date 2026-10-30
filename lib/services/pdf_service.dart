@@ -4,7 +4,6 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import '../models/note_model.dart';
-import '../theme/app_theme.dart';
 
 class PdfService {
   Future<Uint8List> generateNotePdf(Note note, String languageCode) async {
@@ -38,7 +37,7 @@ class PdfService {
       'unit': isEn ? 'Unit' : 'Unitario',
       'subtotal': isEn ? 'Subtotal' : 'Subtotal',
       'vat': isEn ? 'VAT (16%)' : 'IVA (16%)',
-      'total': isEn ? 'Total (MXN)' : 'Total (MXN)',
+      'total': isEn ? 'Total (${note.currency})' : 'Total (${note.currency})',
       'additional_notes': isEn ? 'ADDITIONAL NOTES' : 'NOTAS ADICIONALES',
       'footer': isEn 
           ? 'This document is valid for 15 days. Thank you for trusting ImperioDev.'
@@ -156,9 +155,9 @@ class PdfService {
                              pw.Expanded(flex: 3, child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
                                    pw.Text(item.description, style: pw.TextStyle(color: textDark, fontSize: 11, fontWeight: pw.FontWeight.bold)),
                                    pw.SizedBox(height: 2),
-                                   pw.Text('${labels['quantity']}: ${item.quantity} | ${labels['unit']}: \$${item.price.toStringAsFixed(2)} MXN', style: pw.TextStyle(color: textGrey, fontSize: 9)),
+                                   pw.Text('${labels['quantity']}: ${item.quantity} | ${labels['unit']}: \$${item.price.toStringAsFixed(2)} ${note.currency}', style: pw.TextStyle(color: textGrey, fontSize: 9)),
                              ])),
-                             pw.Expanded(flex: 1, child: pw.Text('\$${item.total.toStringAsFixed(2)} MXN', textAlign: pw.TextAlign.right, style: pw.TextStyle(color: textDark, fontSize: 11, fontWeight: pw.FontWeight.bold))),
+                             pw.Expanded(flex: 1, child: pw.Text('\$${item.total.toStringAsFixed(2)} ${note.currency}', textAlign: pw.TextAlign.right, style: pw.TextStyle(color: textDark, fontSize: 11, fontWeight: pw.FontWeight.bold))),
                          ]),
                        );
                      }),
@@ -167,14 +166,14 @@ class PdfService {
                        padding: const pw.EdgeInsets.only(top: 16),
                        decoration: const pw.BoxDecoration(border: pw.Border(top: pw.BorderSide(color: PdfColors.grey100, width: 2))),
                        child: pw.Column(children: [
-                           pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [pw.Text(labels['subtotal']!, style: pw.TextStyle(color: textGrey, fontSize: 10)), pw.Text('\$${subtotal.toStringAsFixed(2)} MXN', style: pw.TextStyle(color: textDark, fontSize: 11, fontWeight: pw.FontWeight.bold))]),
+                           pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [pw.Text(labels['subtotal']!, style: pw.TextStyle(color: textGrey, fontSize: 10)), pw.Text('\$${subtotal.toStringAsFixed(2)} ${note.currency}', style: pw.TextStyle(color: textDark, fontSize: 11, fontWeight: pw.FontWeight.bold))]),
                            pw.SizedBox(height: 8),
-                           pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [pw.Text(labels['vat']!, style: pw.TextStyle(color: textGrey, fontSize: 10)), pw.Text('\$${vat.toStringAsFixed(2)} MXN', style: pw.TextStyle(color: textDark, fontSize: 11, fontWeight: pw.FontWeight.bold))]),
+                           pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [pw.Text(labels['vat']!, style: pw.TextStyle(color: textGrey, fontSize: 10)), pw.Text('\$${vat.toStringAsFixed(2)} ${note.currency}', style: pw.TextStyle(color: textDark, fontSize: 11, fontWeight: pw.FontWeight.bold))]),
                            pw.SizedBox(height: 12),
                            pw.Container(
                              padding: const pw.EdgeInsets.all(12),
                              decoration: pw.BoxDecoration(color: PdfColors.grey50, borderRadius: pw.BorderRadius.circular(6)),
-                             child: pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [pw.Text(labels['total']!, style: pw.TextStyle(color: textDark, fontSize: 12, fontWeight: pw.FontWeight.bold)), pw.Text('\$${total.toStringAsFixed(2)} MXN', style: pw.TextStyle(color: primaryColor, fontSize: 16, fontWeight: pw.FontWeight.bold))]),
+                             child: pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [pw.Text(labels['total']!, style: pw.TextStyle(color: textDark, fontSize: 12, fontWeight: pw.FontWeight.bold)), pw.Text('\$${total.toStringAsFixed(2)} ${note.currency}', style: pw.TextStyle(color: primaryColor, fontSize: 16, fontWeight: pw.FontWeight.bold))]),
                            ),
                        ]),
                      ),
@@ -208,7 +207,7 @@ class PdfService {
       'total_col': isEn ? 'TOTAL' : 'TOTAL',
       'subtotal': 'Subtotal',
       'vat': isEn ? 'VAT (16%)' : 'IVA (16%)',
-      'total_pay': isEn ? 'TOTAL (MXN)' : 'TOTAL (MXN)',
+      'total_pay': isEn ? 'TOTAL (${note.currency})' : 'TOTAL (${note.currency})',
       'notes': isEn ? 'ADDITIONAL NOTES' : 'NOTAS ADICIONALES',
       'slogan': isEn ? 'Transforming ideas into code' : 'Transformando ideas en código',
       'location': isEn ? 'Hermosillo, Mexico' : 'Hermosillo, México',
@@ -459,7 +458,7 @@ class PdfService {
                                         children: [
                                           pw.Text(item.description, style: pw.TextStyle(color: slate800, fontSize: 11, fontWeight: pw.FontWeight.bold)),
                                           pw.SizedBox(height: 4),
-                                          pw.Text('${labels['unit']}: \$${item.price.toStringAsFixed(2)} MXN', style: pw.TextStyle(color: primaryColor, fontSize: 9, fontStyle: pw.FontStyle.italic)),
+                                          pw.Text('${labels['unit']}: \$${item.price.toStringAsFixed(2)} ${note.currency}', style: pw.TextStyle(color: primaryColor, fontSize: 9, fontStyle: pw.FontStyle.italic)),
                                         ]
                                       )
                                     ),
@@ -469,7 +468,7 @@ class PdfService {
                                     ),
                                     pw.Padding(
                                       padding: const pw.EdgeInsets.symmetric(vertical: 12),
-                                      child: pw.Text('\$${item.total.toStringAsFixed(2)} MXN', textAlign: pw.TextAlign.right, style: pw.TextStyle(color: slate800, fontSize: 11, fontWeight: pw.FontWeight.bold))
+                                      child: pw.Text('\$${item.total.toStringAsFixed(2)} ${note.currency}', textAlign: pw.TextAlign.right, style: pw.TextStyle(color: slate800, fontSize: 11, fontWeight: pw.FontWeight.bold))
                                     ),
                                   ]
                                 );

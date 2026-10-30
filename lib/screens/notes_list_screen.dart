@@ -329,7 +329,7 @@ class _NoteListCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          '\$${note.totalAmount.toStringAsFixed(2)}',
+                          '\$${note.totalAmount.toStringAsFixed(2)} ${note.currency}',
                           style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.primary),
                         ),
                       ],

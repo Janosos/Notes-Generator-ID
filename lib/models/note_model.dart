@@ -41,6 +41,7 @@ class Note {
   String clientPhone;
   String clientEmail;
   String paymentMethod;
+  String currency;
 
   Note({
     required this.clientName,
@@ -55,6 +56,7 @@ class Note {
     this.clientPhone = '',
     this.clientEmail = '',
     this.paymentMethod = '',
+    this.currency = 'MXN',
   });
 
   double get subtotal => items.fold(0, (sum, item) => sum + item.total);
@@ -75,6 +77,7 @@ class Note {
       'clientPhone': clientPhone,
       'clientEmail': clientEmail,
       'paymentMethod': paymentMethod,
+      'currency': currency,
     };
   }
 
@@ -92,6 +95,7 @@ class Note {
       clientPhone: json['clientPhone'] ?? '',
       clientEmail: json['clientEmail'] ?? '',
       paymentMethod: json['paymentMethod'] ?? '',
+      currency: json['currency'] ?? 'MXN',
     );
   }
 }
